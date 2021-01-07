@@ -1,0 +1,116 @@
+"""A row/column position"""
+scalar Address
+
+"""The size of some kind of grid"""
+type Size {
+    numRows: Int!,
+    numColumns: Int!,
+}
+
+"""The size of some kind of grid"""
+input SizeInput {
+    numRows: Int!,
+    numColumns: Int!,
+}
+
+"""An identifier for a location (either an id or a barcode)."""
+input LocationIdentifier {
+    id: Int,
+    barcode: String,
+}
+
+"""An item stored in the system."""
+type Item {
+    """The unique barcode of the stored item."""
+    barcode: String!, # a stored item must have a barcode
+    """The location where the item is stored."""
+    location: Location!, # a stored item must have a location
+    """The address (if applicable) inside the location where the thing is stored."""
+    address: Address, # a stored item may have an address inside its location
+}
+
+"""A type containing a list of items that are stored."""
+type StoreResult {
+    """This field is just given as a subfield to request that isn't the list of superfluous information."""
+    numStored: Int!
+    """The new stored items."""
+    stored: [Item!]!
+}
+
+"""A type containing a list of items that were stored."""
+type UnstoreResult {
+    """This field is just given as a subfield to request that isn't the list of superfluous information."""
+    numUnstored: Int!
+    """The former storage information for the items that were unstored."""
+    unstored: [Item!]!
+}
+
+"""A location that may contain things, in a hierarchical tree of locations."""
+type Location {
+    """The automatically generated id of the location."""
+    id: Int!,
+    """The barcode of the location."""
+    barcode: String!,
+    """The description of the location, if it has one."""
+    description: String, # a location may have a description
+    """The location that this location is inside, if any."""
+    parent: Location, # a location may have a parent location
+    """The address of this location inside its parent, if any."""
+    address: Address, # a location may have an address (inside its parent location)
+    """The locations inside this location (may be empty)."""
+    children: [Location!]!, # a location has a list of any locations inside it
+    """The things stored inside this location (may be empty)."""
+    stored: [Item!]!, # a location has a list of what is stored inside it
+    """The designated size of this location. If this is given,
+    any locations or stored things inside this location should be inside the given bounds."""
+    size: Size, # a location may have a size (number of rows and columns)
+}
+
+"""A specification of a thing to store, and where to store it."""
+input StoreInput {
+    """The barcode of the thing to store."""
+    barcode: String!,
+    """The location to store in."""
+    location: LocationIdentifier,
+    """The address of where the thing should be stored in the location (if any)."""
+    address: Address,
+}
+
+"""A specification of a location."""
+input LocationInput {
+    """The description (if any) that the location should have."""
+    description: String,
+    """The id of the location that the location should be inside (if any)."""
+    parentId: Int,
+    """The address of this location inside its parent (if any)."""
+    address: Address,
+    """The size of this location (optional)."""
+    size: SizeInput,
+}
+
+type Query {
+    """Get the location with the given id or barcode (if it exists)."""
+    location(location: LocationIdentifier!): Location!
+    """Get the stored items with any of the given barcodes (may be empty)."""
+    stored(barcodes: [String!]!): [Item!]!
+}
+
+type Mutation {
+    """Create a new location."""
+    addLocation(location: LocationInput!): Location!
+
+    """Store one thing at the location with the given id or barcode (optionally at the given address inside the location)."""
+    storeBarcode(barcode: String!, location: LocationIdentifier!, address: Address): Item!
+    """Store a list of things at the location with the given id or barcode (without addresses)."""
+    storeBarcodes(barcodes: [String!]!, location: LocationIdentifier!): StoreResult!
+    """Store the given list of things at the specified locations, using the separately
+    specified location id or barcode for items that do not specify a location."""
+    store(store: [StoreInput!]!, location: LocationIdentifier!): StoreResult!
+
+    """Remove the given item from storage (return stored item information, if any)."""
+    unstoreBarcode(barcode: String!): Item
+    """Remove any of the given barcodes from storage (return information about the stored items)."""
+    unstoreBarcodes(barcodes: [String]!): UnstoreResult!
+    """Remove all items stored (directly) in the indicated location id or barcode (returning the list of what was stored)."""
+    empty(location: LocationIdentifier!): UnstoreResult!
+}
