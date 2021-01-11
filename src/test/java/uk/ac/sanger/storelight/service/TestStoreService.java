@@ -247,12 +247,9 @@ public class TestStoreService {
                 return;
             }
             verify(mockCache).lookUp(any());
-            List<Item> expectedStoreItems = data.expectedStoreItems;
-            if (expectedStoreItems==null) {
-                expectedStoreItems = data.expectedResult.stream()
-                        .map(item -> new Item(null, item.getBarcode(), item.getLocation(), item.getAddress()))
-                        .collect(toList());
-            }
+            List<Item> expectedStoreItems = data.expectedResult.stream()
+                    .map(item -> new Item(null, item.getBarcode(), item.getLocation(), item.getAddress()))
+                    .collect(toList());
             verify(storeService).storeItems(expectedStoreItems, barcodeSet);
             return;
         }
@@ -292,7 +289,10 @@ public class TestStoreService {
                         .expectedErrorMessage("Bad addresses in locations."),
                 new StoreTestData(sins).defaultLi(li1)
                         .itemBarcodeError("Bad item barcodes.")
-                        .expectedErrorMessage("Bad item barcodes.")
+                        .expectedErrorMessage("Bad item barcodes."),
+                new StoreTestData(sins).defaultLi(li1)
+                        .locationLookupError("No such thing.")
+                        .expectedErrorMessage("No such thing.")
         );
     }
 
@@ -445,7 +445,6 @@ public class TestStoreService {
         String addressError;
         String locationLookupError;
         List<Item> expectedResult;
-        List<Item> expectedStoreItems;
         String expectedErrorMessage;
         Class<? extends Exception> expectedException;
 
@@ -493,11 +492,6 @@ public class TestStoreService {
 
         public StoreTestData locationLookupError(String locationLookupError) {
             this.locationLookupError = locationLookupError;
-            return this;
-        }
-
-        public StoreTestData expectedStoreItems(List<Item> expectedStoreItems) {
-            this.expectedStoreItems = expectedStoreItems;
             return this;
         }
     }
