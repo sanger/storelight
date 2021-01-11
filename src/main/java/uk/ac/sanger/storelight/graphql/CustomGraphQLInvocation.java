@@ -28,14 +28,6 @@ public class CustomGraphQLInvocation implements GraphQLInvocation {
         this.apiKeyConfig = apiKeyConfig;
     }
 
-    private String getHeaderOrVariable(String name, WebRequest request, Map<String, ?> variables) {
-        String value = request.getHeader(name);
-        if (value!=null) {
-            return value;
-        }
-        Object obj = variables.get(name);
-        return (obj!=null ? obj.toString() : null);
-    }
 
     @Override
     public CompletableFuture<ExecutionResult> invoke(GraphQLInvocationData invocationData, WebRequest request) {
@@ -51,10 +43,19 @@ public class CustomGraphQLInvocation implements GraphQLInvocation {
         return graphQL.executeAsync(executionInput);
     }
 
+    private String getHeaderOrVariable(String name, WebRequest request, Map<String, ?> variables) {
+        String value = request.getHeader(name);
+        if (value!=null) {
+            return value;
+        }
+        Object obj = variables.get(name);
+        return (obj!=null ? obj.toString() : null);
+    }
+
     @NotNull
     private StoreRequestContext getStoreRequestContext(WebRequest request, Map<String, Object> variables) {
         String apiKey = getHeaderOrVariable(StorelightApi.API_KEY, request, variables);
-        String username = getHeaderOrVariable(StorelightApi.API_KEY, request, variables);
+        String username = getHeaderOrVariable(StorelightApi.USER, request, variables);
         String app = (apiKey==null ? null : apiKeyConfig.getApp(apiKey));
         return new StoreRequestContext(apiKey, app, username);
     }
