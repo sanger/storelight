@@ -11,6 +11,7 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.pluralise;
 import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
 
 /**
+ * Checks stuff can be stored in specific addresses in locations.
  * @author dr6
  */
 @Service

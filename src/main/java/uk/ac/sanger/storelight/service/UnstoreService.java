@@ -45,7 +45,7 @@ public class UnstoreService {
         if (location.getStored().isEmpty()) {
             return List.of();
         }
-        List<Item> items = new ArrayList<>(location.getStored());
+        List<Item> items = List.copyOf(location.getStored());
         db.getItemRepo().deleteAll(items);
         return items;
     }

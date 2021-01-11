@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static uk.ac.sanger.storelight.utils.BasicUtils.coalesce;
 
 /**
  * Service for storing items in locations
@@ -57,7 +58,7 @@ public class StoreService {
     }
 
     public Iterable<Item> storeBarcodes(List<String> barcodes, LocationIdentifier li) {
-        validateItemBarcodes(barcodes.stream());
+        CIStringSet barcodeSet = validateItemBarcodes(barcodes.stream());
         Location location = db.getLocationRepo().get(li);
         if (barcodes.isEmpty()) {
             return List.of();
@@ -65,7 +66,7 @@ public class StoreService {
         List<Item> newItems = barcodes.stream()
                 .map(bc -> new Item(bc, location))
                 .collect(toList());
-        return storeItems(newItems, barcodes);
+        return storeItems(newItems, barcodeSet);
     }
 
     public Iterable<Item> store(List<StoreInput> storeInputs, LocationIdentifier defaultLi) {
@@ -73,17 +74,24 @@ public class StoreService {
             return List.of();
         }
         CIStringSet barcodeSet = validateItemBarcodes(storeInputs.stream().map(StoreInput::getBarcode));
-        LocationCache locationCache = new LocationCache(db.getLocationRepo());
+        LocationCache locationCache = makeLocationCache();
+        if (defaultLi==null && storeInputs.stream().anyMatch(sin -> sin.getLocation()==null)) {
+            throw new IllegalArgumentException("A location must be specified for each item.");
+        }
         locationCache.lookUp(Stream.concat(Stream.of(defaultLi), storeInputs.stream().map(StoreInput::getLocation))
                 .filter(Objects::nonNull));
         List<Item> newItems = storeInputs.stream()
-                .map(sin -> new Item(null, sin.getBarcode(), locationCache.get(sin.getLocation()), sin.getAddress()))
+                .map(sin -> new Item(null, sin.getBarcode(), locationCache.get(coalesce(sin.getLocation(), defaultLi)), sin.getAddress()))
                 .collect(toList());
         storeAddressChecker.checkItems(newItems, barcodeSet);
         return storeItems(newItems, barcodeSet);
     }
 
-    private Iterable<Item> storeItems(Collection<Item> items, Collection<String> barcodes) {
+    LocationCache makeLocationCache() {
+        return new LocationCache(db.getLocationRepo());
+    }
+
+    Iterable<Item> storeItems(Collection<Item> items, Collection<String> barcodes) {
         ItemRepo itemRepo = db.getItemRepo();
         itemRepo.deleteAllByBarcodeIn(barcodes);
         entityManager.flush();

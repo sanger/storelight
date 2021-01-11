@@ -102,6 +102,7 @@ public class Item {
                 .add("id", id)
                 .add("barcode", repr(barcode))
                 .add("address", address)
+                .add("locationId", location==null ? null : location.getId())
                 .toString();
     }
 }

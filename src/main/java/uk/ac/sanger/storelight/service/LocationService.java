@@ -46,7 +46,7 @@ public class LocationService {
             if (desc.isEmpty()) {
                 desc = null;
             } else if (desc.length() > Location.MAX_DESCRIPTION) {
-                throw new IllegalArgumentException("Location description too long (max length: "+Location.MAX_DESCRIPTION+")");
+                throw new IllegalArgumentException("Location description is too long (max length: "+Location.MAX_DESCRIPTION+").");
             }
         }
         String barcode = db.getBarcodeSeedRepo().createStoreBarcode();

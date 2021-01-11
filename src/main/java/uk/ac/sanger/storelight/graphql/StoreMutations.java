@@ -5,10 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.ac.sanger.storelight.model.*;
-import uk.ac.sanger.storelight.repo.StoreDB;
+import uk.ac.sanger.storelight.model.Address;
+import uk.ac.sanger.storelight.model.Item;
 import uk.ac.sanger.storelight.requests.*;
-import uk.ac.sanger.storelight.service.LocationService;
 import uk.ac.sanger.storelight.service.StoreService;
 
 import java.util.List;
@@ -18,14 +17,11 @@ import java.util.List;
  */
 @Component
 public class StoreMutations extends BaseGraphQLResource {
-    private final StoreDB db;
     private final StoreService storeService;
 
     @Autowired
-    public StoreMutations(ObjectMapper objectMapper, StoreDB db,
-                          StoreService storeService) {
+    public StoreMutations(ObjectMapper objectMapper, StoreService storeService) {
         super(objectMapper);
-        this.db = db;
         this.storeService = storeService;
     }
 

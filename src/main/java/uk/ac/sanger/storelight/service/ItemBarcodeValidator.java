@@ -14,6 +14,7 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.pluralise;
 import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
 
 /**
+ * Checks a stream of item barcodes and generates an exception listing all the problems it finds.
  * @author dr6
  */
 @Service

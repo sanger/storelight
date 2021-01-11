@@ -38,6 +38,10 @@ public class Location {
         this(null, null, null, null, null, null);
     }
 
+    public Location(Integer id, String barcode) {
+        this(id, barcode, null, null, null, null);
+    }
+
     public Location(Integer id, String barcode, String description, Location parent, Address address, Size size) {
         this.id = id;
         this.barcode = barcode;

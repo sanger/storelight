@@ -157,6 +157,31 @@ public class CIStringSet implements Set<String> {
         list.clear();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CIStringSet that = (CIStringSet) o;
+        return this.set.equals(that.set);
+        // Note that this set is not equal to any other implementation of set,
+        // so it breaks the symmetry of equals with sets that think they can be equal
+        // to any other set
+    }
+
+    @Override
+    public int hashCode() {
+        return set.hashCode();
+    }
+
+    public static CIStringSet of(String... strings) {
+        return new CIStringSet(List.of(strings));
+    }
+
+    @Override
+    public String toString() {
+        return "CIStringSet{"+String.join(", ", list)+"}";
+    }
+
     private class Iter implements Iterator<String> {
         int nextIndex = 0;   // index of next element to return
         int lastIndex = -1;  // index of last element returned, or -1
