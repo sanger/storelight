@@ -1,11 +1,16 @@
 package uk.ac.sanger.storelight.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.ac.sanger.storelight.graphql.StoreRequestContext;
 import uk.ac.sanger.storelight.model.Address;
 import uk.ac.sanger.storelight.model.Location;
 import uk.ac.sanger.storelight.repo.StoreDB;
 import uk.ac.sanger.storelight.requests.LocationInput;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Service for operations on {@link Location Locations}.
@@ -13,6 +18,8 @@ import uk.ac.sanger.storelight.requests.LocationInput;
  */
 @Service
 public class LocationService {
+    private final Logger log = LoggerFactory.getLogger(LocationService.class);
+
     private final StoreDB db;
 
     @Autowired
@@ -25,7 +32,8 @@ public class LocationService {
      * @param lin the details about hte new location
      * @return the new location
      */
-    public Location createLocation(LocationInput lin) {
+    public Location createLocation(StoreRequestContext context, LocationInput lin) {
+        requireNonNull(context, "Request context is null.");
         if (lin.getAddress()!=null && lin.getParentId()==null) {
             throw new IllegalArgumentException("A location with no parent cannot have an address.");
         }
@@ -51,6 +59,8 @@ public class LocationService {
         }
         String barcode = db.getBarcodeSeedRepo().createStoreBarcode();
         Location loc = new Location(null, barcode, desc, parent, address, lin.getSize());
-        return db.getLocationRepo().save(loc);
+        Location savedLoc = db.getLocationRepo().save(loc);
+        log.info("New location created {} by {}.", savedLoc, context);
+        return savedLoc;
     }
 }

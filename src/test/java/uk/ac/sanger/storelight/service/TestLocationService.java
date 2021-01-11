@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import uk.ac.sanger.storelight.graphql.StoreRequestContext;
 import uk.ac.sanger.storelight.model.*;
 import uk.ac.sanger.storelight.repo.*;
 import uk.ac.sanger.storelight.requests.LocationInput;
@@ -27,10 +28,12 @@ public class TestLocationService {
     private static final String NEWBC = "STO-88";
     private LocationRepo mockLocationRepo;
     private LocationService locationService;
+    private StoreRequestContext ctxt;
 
     @BeforeEach
     void setup() {
         StoreDB mockDb = mock(StoreDB.class);
+        ctxt = new StoreRequestContext("apikey", "test", "tester");
         mockLocationRepo = mock(LocationRepo.class);
         BarcodeSeedRepo mockBarcodeSeedRepo = mock(BarcodeSeedRepo.class);
         when(mockDb.getBarcodeSeedRepo()).thenReturn(mockBarcodeSeedRepo);
@@ -51,15 +54,15 @@ public class TestLocationService {
             when(mockLocationRepo.getById(any())).thenThrow(EntityNotFoundException.class);
         }
         if (expectedResult instanceof Location) {
-            Location result = locationService.createLocation(lin);
+            Location result = locationService.createLocation(ctxt, lin);
             assertEquals(expectedResult, result);
             verify(mockLocationRepo).save(result);
         } else if (expectedResult instanceof Class) {
             //noinspection unchecked
-            assertThrows((Class<? extends Throwable>) expectedResult, () -> locationService.createLocation(lin));
+            assertThrows((Class<? extends Throwable>) expectedResult, () -> locationService.createLocation(ctxt, lin));
             verify(mockLocationRepo, never()).save(any());
         } else if (expectedResult instanceof String) {
-            assertThat(assertThrows(IllegalArgumentException.class, () -> locationService.createLocation(lin)))
+            assertThat(assertThrows(IllegalArgumentException.class, () -> locationService.createLocation(ctxt, lin)))
                     .hasMessage((String) expectedResult);
             verify(mockLocationRepo, never()).save(any());
         }

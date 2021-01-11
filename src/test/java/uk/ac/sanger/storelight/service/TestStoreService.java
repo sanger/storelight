@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InOrder;
+import uk.ac.sanger.storelight.graphql.StoreRequestContext;
 import uk.ac.sanger.storelight.model.*;
 import uk.ac.sanger.storelight.repo.*;
 import uk.ac.sanger.storelight.requests.LocationIdentifier;
@@ -35,9 +36,11 @@ public class TestStoreService {
     private LocationRepo mockLocationRepo;
 
     private StoreService storeService;
+    private StoreRequestContext ctxt;
 
     @BeforeEach
     void setup() {
+        ctxt = new StoreRequestContext("apikey", "test", "tester");
         mockEntityManager = mock(EntityManager.class);
         mockItemBarcodeValidator = mock(ItemBarcodeValidator.class);
         mockStoreAddressChecker = mock(StoreAddressChecker.class);
@@ -68,7 +71,7 @@ public class TestStoreService {
         }
 
         if (data.expectedResult!=null) {
-            assertEquals(data.expectedResult, storeService.storeBarcode(itemBarcode, li, data.address));
+            assertEquals(data.expectedResult, storeService.storeBarcode(ctxt, itemBarcode, li, data.address));
             verify(mockItemBarcodeValidator).validateItemBarcodes(any());
             InOrder order = inOrder(mockItemRepo, mockEntityManager);
             order.verify(mockItemRepo).deleteAllByBarcodeIn(List.of(itemBarcode));
@@ -76,7 +79,7 @@ public class TestStoreService {
             order.verify(mockItemRepo).save(data.expectedResult);
             return;
         }
-        Exception ex = assertThrows(data.expectedException, () -> storeService.storeBarcode(itemBarcode, li, data.address));
+        Exception ex = assertThrows(data.expectedException, () -> storeService.storeBarcode(ctxt, itemBarcode, li, data.address));
         if (data.expectedErrorMessage!=null) {
             assertThat(ex).hasMessage(data.expectedErrorMessage);
         }
@@ -146,24 +149,24 @@ public class TestStoreService {
         } else {
             when(mockLocationRepo.get(any())).thenThrow(EntityNotFoundException.class);
         }
-        doAnswer(invocation -> invocation.getArgument(0))
-                .when(storeService).storeItems(any(), any());
+        doAnswer(invocation -> invocation.getArgument(1))
+                .when(storeService).storeItems(any(), any(), any());
 
         if (data.expectedResult!=null) {
-            assertEquals(data.expectedResult, storeService.storeBarcodes(data.barcodes, li));
+            assertEquals(data.expectedResult, storeService.storeBarcodes(ctxt, data.barcodes, li));
             if (data.expectedResult.isEmpty()) {
-                verify(storeService, never()).storeItems(any(), any());
+                verify(storeService, never()).storeItems(any(), any(), any());
             } else {
-                verify(storeService).storeItems(data.expectedResult, barcodeSet);
+                verify(storeService).storeItems(ctxt, data.expectedResult, barcodeSet);
             }
             return;
         }
 
-        Exception ex = assertThrows(data.expectedException, () -> storeService.storeBarcodes(data.barcodes, li));
+        Exception ex = assertThrows(data.expectedException, () -> storeService.storeBarcodes(ctxt, data.barcodes, li));
         if (data.expectedErrorMessage!=null) {
             assertThat(ex).hasMessage(data.expectedErrorMessage);
         }
-        verify(storeService, never()).storeItems(any(), any());
+        verify(storeService, never()).storeItems(any(), any(), any());
     }
 
     static Stream <StoreBarcodesTestData> storeBarcodesTestData() {
@@ -238,26 +241,26 @@ public class TestStoreService {
         }
 
         if (data.expectedResult!=null) {
-            doReturn(data.expectedResult).when(storeService).storeItems(any(), any());
-            assertEquals(data.expectedResult, storeService.store(data.storeInputs, data.defaultLi));
+            doReturn(data.expectedResult).when(storeService).storeItems(any(), any(), any());
+            assertEquals(data.expectedResult, storeService.store(ctxt, data.storeInputs, data.defaultLi));
             if (data.storeInputs.isEmpty()) {
                 verifyNoInteractions(mockCache);
                 verifyNoInteractions(mockStoreAddressChecker);
-                verify(storeService, never()).storeItems(any(), any());
+                verify(storeService, never()).storeItems(any(), any(), any());
                 return;
             }
             verify(mockCache).lookUp(any());
             List<Item> expectedStoreItems = data.expectedResult.stream()
                     .map(item -> new Item(null, item.getBarcode(), item.getLocation(), item.getAddress()))
                     .collect(toList());
-            verify(storeService).storeItems(expectedStoreItems, barcodeSet);
+            verify(storeService).storeItems(ctxt, expectedStoreItems, barcodeSet);
             return;
         }
-        Exception ex = assertThrows(data.expectedException, () -> storeService.store(data.storeInputs, data.defaultLi));
+        Exception ex = assertThrows(data.expectedException, () -> storeService.store(ctxt, data.storeInputs, data.defaultLi));
         if (data.expectedErrorMessage!=null) {
             assertThat(ex).hasMessage(data.expectedErrorMessage);
         }
-        verify(storeService, never()).storeItems(any(), any());
+        verify(storeService, never()).storeItems(any(), any(), any());
     }
 
     static Stream<StoreTestData> storeTestData() {
@@ -322,7 +325,7 @@ public class TestStoreService {
         InOrder inOrder = inOrder(mockItemRepo, mockEntityManager);
         when(mockItemRepo.saveAll(any())).thenReturn(savedItems);
 
-        assertSame(savedItems, storeService.storeItems(items, barcodeSet));
+        assertSame(savedItems, storeService.storeItems(ctxt, items, barcodeSet));
         inOrder.verify(mockItemRepo).deleteAllByBarcodeIn(barcodeSet);
         inOrder.verify(mockEntityManager).flush();
         inOrder.verify(mockItemRepo).saveAll(items);

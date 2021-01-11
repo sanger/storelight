@@ -3,6 +3,7 @@ package uk.ac.sanger.storelight.graphql;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import uk.ac.sanger.storelight.requests.LocationIdentifier;
 
 /**
@@ -34,5 +35,20 @@ public abstract class BaseGraphQLResource {
 
     protected <E> E arg(DataFetchingEnvironment dfe, String name, TypeReference<E> typeRef) {
         return objectMapper.convertValue(dfe.getArgument(name), typeRef);
+    }
+
+    protected StoreRequestContext context(DataFetchingEnvironment dfe) {
+        return dfe.getContext();
+    }
+
+    protected StoreRequestContext auth(DataFetchingEnvironment dfe) {
+        StoreRequestContext ctxt = context(dfe);
+        if (ctxt==null || ctxt.getApiKey()==null || ctxt.getApiKey().isEmpty()) {
+            throw new AuthenticationCredentialsNotFoundException("No API key.");
+        }
+        if (ctxt.getApp()==null) {
+            throw new AuthenticationCredentialsNotFoundException("Invalid API key.");
+        }
+        return ctxt;
     }
 }

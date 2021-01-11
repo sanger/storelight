@@ -1,7 +1,10 @@
 package uk.ac.sanger.storelight.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.ac.sanger.storelight.graphql.StoreRequestContext;
 import uk.ac.sanger.storelight.model.*;
 import uk.ac.sanger.storelight.repo.ItemRepo;
 import uk.ac.sanger.storelight.repo.StoreDB;
@@ -13,8 +16,10 @@ import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static uk.ac.sanger.storelight.utils.BasicUtils.coalesce;
+import static uk.ac.sanger.storelight.utils.BasicUtils.iterableToString;
 
 /**
  * Service for storing items in locations
@@ -22,6 +27,8 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.coalesce;
  */
 @Service
 public class StoreService {
+    private final Logger log = LoggerFactory.getLogger(StoreService.class);
+
     private final EntityManager entityManager;
     private final StoreDB db;
     private final ItemBarcodeValidator itemBarcodeValidator;
@@ -35,7 +42,8 @@ public class StoreService {
         this.storeAddressChecker = storeAddressChecker;
     }
 
-    public Item storeBarcode(String barcode, LocationIdentifier li, Address address) {
+    public Item storeBarcode(StoreRequestContext ctxt, String barcode, LocationIdentifier li, Address address) {
+        requireNonNull(ctxt, "Request context is null.");
         validateItemBarcodes(Stream.of(barcode));
         Location location = db.getLocationRepo().get(li);
         if (location.getSize()!=null && address!=null && !location.getSize().contains(address)) {
@@ -53,11 +61,13 @@ public class StoreService {
         final ItemRepo itemRepo = db.getItemRepo();
         itemRepo.deleteAllByBarcodeIn(List.of(barcode));
         entityManager.flush();
-        Item item = new Item(null, barcode, location, address);
-        return itemRepo.save(item);
+        Item item = itemRepo.save(new Item(null, barcode, location, address));
+        log.info("Item stored {} by {}.", item, ctxt);
+        return item;
     }
 
-    public Iterable<Item> storeBarcodes(List<String> barcodes, LocationIdentifier li) {
+    public Iterable<Item> storeBarcodes(StoreRequestContext ctxt, List<String> barcodes, LocationIdentifier li) {
+        requireNonNull(ctxt, "Request context is null.");
         CIStringSet barcodeSet = validateItemBarcodes(barcodes.stream());
         Location location = db.getLocationRepo().get(li);
         if (barcodes.isEmpty()) {
@@ -66,10 +76,11 @@ public class StoreService {
         List<Item> newItems = barcodes.stream()
                 .map(bc -> new Item(bc, location))
                 .collect(toList());
-        return storeItems(newItems, barcodeSet);
+        return storeItems(ctxt, newItems, barcodeSet);
     }
 
-    public Iterable<Item> store(List<StoreInput> storeInputs, LocationIdentifier defaultLi) {
+    public Iterable<Item> store(StoreRequestContext ctxt, List<StoreInput> storeInputs, LocationIdentifier defaultLi) {
+        requireNonNull(ctxt, "Request context is null.");
         if (storeInputs.isEmpty()) {
             return List.of();
         }
@@ -84,18 +95,22 @@ public class StoreService {
                 .map(sin -> new Item(null, sin.getBarcode(), locationCache.get(coalesce(sin.getLocation(), defaultLi)), sin.getAddress()))
                 .collect(toList());
         storeAddressChecker.checkItems(newItems, barcodeSet);
-        return storeItems(newItems, barcodeSet);
+        return storeItems(ctxt, newItems, barcodeSet);
     }
 
     LocationCache makeLocationCache() {
         return new LocationCache(db.getLocationRepo());
     }
 
-    Iterable<Item> storeItems(Collection<Item> items, Collection<String> barcodes) {
+    Iterable<Item> storeItems(StoreRequestContext ctxt, Collection<Item> items, Collection<String> barcodes) {
         ItemRepo itemRepo = db.getItemRepo();
         itemRepo.deleteAllByBarcodeIn(barcodes);
         entityManager.flush();
-        return itemRepo.saveAll(items);
+        Iterable<Item> saved = itemRepo.saveAll(items);
+        if (log.isInfoEnabled()) {
+            log.info("Items stored {} by {}.", iterableToString(saved), ctxt);
+        }
+        return saved;
     }
 
     private CIStringSet validateItemBarcodes(Stream<String> barcodes) {

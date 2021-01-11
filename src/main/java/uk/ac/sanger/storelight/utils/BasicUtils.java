@@ -117,6 +117,27 @@ public class BasicUtils {
         return list;
     }
 
+    public static <E> String iterableToString(Iterable<E> items, Function<? super E, String> stringFunction) {
+        if (items==null) {
+            return "null";
+        }
+        Iterator<E> iter = items.iterator();
+        if (!iter.hasNext()) {
+            return "[]";
+        }
+        StringBuilder sb = new StringBuilder("[")
+                .append(stringFunction.apply(iter.next()));
+        while (iter.hasNext()) {
+            sb.append(", ");
+            sb.append(stringFunction.apply(iter.next()));
+        }
+        return sb.append(']').toString();
+    }
+
+    public static <E> String iterableToString(Iterable<E> items) {
+        return iterableToString(items, String::valueOf);
+    }
+
     /**
      * Do two collections have the same contents (maybe in a different order)?
      * If the collections contain repetitions, this method does <i>not</i> check

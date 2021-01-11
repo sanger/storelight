@@ -30,7 +30,7 @@ public class StoreMutations extends BaseGraphQLResource {
             String barcode = dfe.getArgument("barcode");
             Address address = dfe.getArgument("address");
             LocationIdentifier li = getLocationIdentifier(dfe);
-            return storeService.storeBarcode(barcode, li, address);
+            return storeService.storeBarcode(auth(dfe), barcode, li, address);
         };
     }
 
@@ -38,7 +38,7 @@ public class StoreMutations extends BaseGraphQLResource {
         return dfe -> {
             List<String> barcodes = dfe.getArgument("barcodes");
             LocationIdentifier li = getLocationIdentifier(dfe);
-            return new StoreResult(storeService.storeBarcodes(barcodes, li));
+            return new StoreResult(storeService.storeBarcodes(auth(dfe), barcodes, li));
         };
     }
 
@@ -46,7 +46,7 @@ public class StoreMutations extends BaseGraphQLResource {
         return dfe -> {
             List<StoreInput> storeInputs = arg(dfe, "store", new TypeReference<List<StoreInput>>() {});
             LocationIdentifier li = getLocationIdentifier(dfe);
-            return new StoreResult(storeService.store(storeInputs, li));
+            return new StoreResult(storeService.store(auth(dfe), storeInputs, li));
         };
     }
 }

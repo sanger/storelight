@@ -82,6 +82,7 @@ public class GraphQLProvider {
 
                         .dataFetcher("unstoreBarcode", transact(unstoreMutations.unstoreBarcode()))
                         .dataFetcher("unstoreBarcodes", transact(unstoreMutations.unstoreBarcodes()))
+                        .dataFetcher("empty", transact(unstoreMutations.empty()))
                 )
                 .scalar(CustomTypes.ADDRESS)
                 .build();

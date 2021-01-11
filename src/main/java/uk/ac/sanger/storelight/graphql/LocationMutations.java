@@ -24,7 +24,7 @@ public class LocationMutations extends BaseGraphQLResource {
     public DataFetcher<Location> addLocation() {
         return dfe -> {
             LocationInput lin = arg(dfe, "location", LocationInput.class);
-            return locationService.createLocation(lin);
+            return locationService.createLocation(auth(dfe), lin);
         };
     }
 }
