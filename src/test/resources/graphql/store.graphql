@@ -1,0 +1,10 @@
+mutation {
+    store(store:[], location: {id:1}) {
+        numStored
+        stored {
+            barcode
+            location { id }
+            address
+        }
+    }
+}

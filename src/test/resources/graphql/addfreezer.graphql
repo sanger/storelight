@@ -1,0 +1,8 @@
+mutation {
+    addLocation(location:{
+        description: "A freezer."
+    }) {
+        barcode
+        id
+    }
+}

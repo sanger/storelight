@@ -1,0 +1,10 @@
+mutation {
+    addLocation(location: {
+        size: { numRows: 2, numColumns: 3 }
+        address: "A2"
+        parentId: 1#PARENT_ID
+    }) {
+        id
+        barcode
+    }
+}

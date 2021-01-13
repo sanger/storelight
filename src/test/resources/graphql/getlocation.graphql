@@ -1,0 +1,11 @@
+{
+    location(location: {id:1}) {
+        barcode
+        id
+        description
+        size { numRows, numColumns}
+        parent { id }
+        children { id }
+        stored { barcode }
+    }
+}
