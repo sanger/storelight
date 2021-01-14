@@ -84,7 +84,7 @@ public class IntegrationTests {
         addSubLocationMutation = addSubLocationMutation.replace("1#PARENT_ID", freezerLi.getId().toString());
         Object response = tester.post(addSubLocationMutation);
         Integer id = chainGet(response, "data", "addLocation", "id");
-        String editMutation = tester.readResource("graphql/editLocation.graphql")
+        String editMutation = tester.readResource("graphql/editlocation.graphql")
                 .replace("{id:1}", "{id:"+id+"}");
         response = tester.post(editMutation);
         Map<String,?> info = chainGet(response, "data", "editLocation");
