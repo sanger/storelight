@@ -3,6 +3,7 @@
         barcode
         id
         description
+        address
         size { numRows, numColumns}
         parent { id }
         children { id }

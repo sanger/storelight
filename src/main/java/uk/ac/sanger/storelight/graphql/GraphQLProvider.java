@@ -75,6 +75,7 @@ public class GraphQLProvider {
                 )
                 .type(newTypeWiring("Mutation")
                         .dataFetcher("addLocation", transact(locationMutations.addLocation()))
+                        .dataFetcher("editLocation", transact(locationMutations.editLocation()))
 
                         .dataFetcher("storeBarcode", transact(storeMutations.storeBarcode()))
                         .dataFetcher("storeBarcodes", transact(storeMutations.storeBarcodes()))

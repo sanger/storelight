@@ -98,6 +98,8 @@ type Query {
 type Mutation {
     """Create a new location."""
     addLocation(location: LocationInput!): Location!
+    """Alter an existing location."""
+    editLocation(location: LocationIdentifier!, change: LocationInput!): Location!
 
     """Store one thing at the location with the given id or barcode (optionally at the given address inside the location)."""
     storeBarcode(barcode: String!, location: LocationIdentifier!, address: Address): Item!

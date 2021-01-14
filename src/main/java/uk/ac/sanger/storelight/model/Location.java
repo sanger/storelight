@@ -5,7 +5,6 @@ import com.google.common.base.MoreObjects;
 import javax.persistence.*;
 import java.util.*;
 
-import static java.util.stream.Collectors.toMap;
 import static uk.ac.sanger.storelight.utils.BasicUtils.newArrayList;
 import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
 
@@ -15,7 +14,7 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
  */
 @Entity
 public class Location {
-    public static final int MAX_DESCRIPTION = 64;
+    public static final int MAX_DESCRIPTION = 256;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
+ * Integration tests that run right through graphql api to (some kind of) database
  * @author dr6
  */
 @SpringBootTest
@@ -49,7 +50,7 @@ public class IntegrationTests {
             assertThat(chainGetList(locData, "stored")).isEmpty();
         }
 
-        String addSubLocationQuery = tester.readResource("graphql/addsublocationquery.graphql");
+        String addSubLocationQuery = tester.readResource("graphql/addsublocation.graphql");
         addSubLocationQuery = addSubLocationQuery.replace("1#PARENT_ID", freezerId.toString());
         Object response = tester.post(addSubLocationQuery);
         Object locData = chainGet(response, "data", "addLocation");
@@ -73,6 +74,34 @@ public class IntegrationTests {
         List<?> children = chainGetList(response, "data", "location", "children");
         assertThat(children).hasSize(1);
         assertEquals(id, chainGet(children, 0, "id"));
+    }
+
+    @Test
+    @Transactional
+    public void testEditLocation() throws Exception {
+        LocationIdentifier freezerLi = makeFreezer();
+        String addSubLocationMutation = tester.readResource("graphql/addsublocation.graphql");
+        addSubLocationMutation = addSubLocationMutation.replace("1#PARENT_ID", freezerLi.getId().toString());
+        Object response = tester.post(addSubLocationMutation);
+        Integer id = chainGet(response, "data", "addLocation", "id");
+        String editMutation = tester.readResource("graphql/editLocation.graphql")
+                .replace("{id:1}", "{id:"+id+"}");
+        response = tester.post(editMutation);
+        Map<String,?> info = chainGet(response, "data", "editLocation");
+        assertEquals(id, info.get("id"));
+        assertEquals("I like describing things.", info.get("description"));
+        assertEquals(Map.of("numRows", 10, "numColumns", 11), info.get("size"));
+        assertEquals("F12", info.get("address").toString());
+        String getLocationQuery = tester.readResource("graphql/getlocation.graphql")
+                .replace("{id:1}", "{id:"+id+"}");
+        response = tester.post(getLocationQuery);
+        System.out.println("****\n"+response+"\n****");
+        info = chainGet(response, "data", "location");
+        assertEquals(id, info.get("id"));
+        assertEquals("I like describing things.", info.get("description"));
+        assertEquals(Map.of("numRows", 10, "numColumns", 11), info.get("size"));
+        assertEquals("F12", info.get("address").toString());
+        assertEquals(freezerLi.getId(), chainGet(info, "parent", "id"));
     }
 
     @Test
