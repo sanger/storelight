@@ -63,6 +63,7 @@ public class StoreService {
         entityManager.flush();
         Item item = itemRepo.save(new Item(null, barcode, location, address));
         log.info("Item stored {} by {}.", item, ctxt);
+        entityManager.refresh(item.getLocation()); // Sometimes location doesn't have updated contents without this
         return item;
     }
 
@@ -109,6 +110,17 @@ public class StoreService {
         Iterable<Item> saved = itemRepo.saveAll(items);
         if (log.isInfoEnabled()) {
             log.info("Items stored {} by {}.", iterableToString(saved), ctxt);
+        }
+        Map<Integer, Location> refreshedLocations = new HashMap<>();
+        for (Item item : saved) {
+            Location refreshedLoc = refreshedLocations.get(item.getLocation().getId());
+            if (refreshedLoc==null) {
+                refreshedLoc = item.getLocation();
+                entityManager.refresh(refreshedLoc);
+                refreshedLocations.put(refreshedLoc.getId(), refreshedLoc);
+            } else {
+                item.setLocation(refreshedLoc);
+            }
         }
         return saved;
     }

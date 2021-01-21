@@ -1,0 +1,9 @@
+mutation {
+    storeBarcode(barcode:"ITEM-1", location: {barcode:"LOCATIONBARCODE"}, address: "A2") {
+        barcode
+        location {
+            barcode
+            stored { barcode address }
+        }
+    }
+}

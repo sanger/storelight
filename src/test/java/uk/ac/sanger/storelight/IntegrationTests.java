@@ -10,6 +10,7 @@ import uk.ac.sanger.storelight.requests.LocationIdentifier;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -240,6 +241,37 @@ public class IntegrationTests {
                 .replace("{id:1}", "{id:"+li.getId()+"}");
         response = tester.post(getLocationQuery);
         assertThat(chainGetList(response, "data", "location", "stored")).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    public void testStoreAtAddressAndGetStored() throws Exception {
+        // I observed that sometimes the location in the returned item does not include the newly stored item.
+        // This test attempts to check that.
+        LocationIdentifier li = makeFreezer();
+        String mutation = tester.readResource("graphql/storeAtAddressAndGetStored.graphql")
+                .replace("LOCATIONBARCODE", li.getBarcode());
+        Object response = tester.post(mutation);
+        List<Map<String,?>> stored = chainGet(response, "data", "storeBarcode", "location", "stored");
+        assertThat(stored).isNotEmpty();
+        assertEquals("ITEM-1", chainGet(stored, 0, "barcode"));
+        assertEquals("A2", chainGet(stored, 0, "address"));
+    }
+
+    @Test
+    @Transactional
+    public void testStoreMultipleAndGetStored() throws Exception {
+        // I observed that sometimes the location in the returned item does not include the newly stored item.
+        // This test attempts to check that.
+        LocationIdentifier li = makeFreezer();
+        String mutation = tester.readResource("graphql/storeMultipleAndGetStored.graphql")
+                .replace("LOCATIONBARCODE", li.getBarcode());
+        Object response = tester.post(mutation);
+        List<Map<String,?>> stored = chainGet(response, "data", "store", "stored");
+        assertThat(stored).hasSize(3);
+        for (var item : stored) {
+            assertThat(chainGetList(item, "location", "stored")).hasSize(3);
+        }
     }
 
     @Test
