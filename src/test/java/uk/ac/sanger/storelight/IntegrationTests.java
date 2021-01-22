@@ -5,12 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import uk.ac.sanger.storelight.model.GridDirection;
 import uk.ac.sanger.storelight.repo.StoreDB;
 import uk.ac.sanger.storelight.requests.LocationIdentifier;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.io.IOException;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,13 +96,13 @@ public class IntegrationTests {
         String getLocationQuery = tester.readResource("graphql/getlocation.graphql")
                 .replace("{id:1}", "{id:"+id+"}");
         response = tester.post(getLocationQuery);
-        System.out.println("****\n"+response+"\n****");
         info = chainGet(response, "data", "location");
         assertEquals(id, info.get("id"));
         assertEquals("I like describing things.", info.get("description"));
         assertEquals(Map.of("numRows", 10, "numColumns", 11), info.get("size"));
         assertEquals("F12", info.get("address").toString());
         assertEquals(freezerLi.getId(), chainGet(info, "parent", "id"));
+        assertEquals(GridDirection.DownRight.name(), chainGet(info, "direction"));
     }
 
     @Test

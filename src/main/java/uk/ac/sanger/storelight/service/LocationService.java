@@ -15,6 +15,7 @@ import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 import static uk.ac.sanger.storelight.utils.BasicUtils.pluralise;
+import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
 
 /**
  * Service for operations on {@link Location Locations}.
@@ -62,7 +63,7 @@ public class LocationService {
             }
         }
         String barcode = db.getBarcodeSeedRepo().createStoreBarcode();
-        Location loc = new Location(null, barcode, desc, parent, address, lin.getSize());
+        Location loc = new Location(null, barcode, desc, parent, address, lin.getSize(), lin.getDirection());
         Location savedLoc = db.getLocationRepo().save(loc);
         log.info("New location created {} by {}.", savedLoc, context);
         return savedLoc;
@@ -127,6 +128,22 @@ public class LocationService {
                     if (!Objects.equals(location.getSize(), size)) {
                         changed = true;
                         location.setSize(size);
+                    }
+                    break;
+                }
+                case "direction": {
+                    Object dirObj = entry.getValue();
+                    GridDirection direction;
+                    if (dirObj==null) {
+                        direction = null;
+                    } else if (dirObj instanceof GridDirection) {
+                        direction = (GridDirection) dirObj;
+                    } else {
+                        direction = GridDirection.valueOf(dirObj.toString());
+                    }
+                    if (location.getDirection()!=direction) {
+                        changed = true;
+                        location.setDirection(direction);
                     }
                     break;
                 }
@@ -234,6 +251,23 @@ public class LocationService {
                     }
                     break;
                 }
+
+                case "direction": {
+                    if (value==null) {
+                        continue;
+                    }
+                    if (value instanceof String) {
+                        try {
+                            GridDirection.valueOf((String) value);
+                        } catch (IllegalArgumentException e) {
+                            problems.add("Invalid grid direction: "+repr(value));
+                        }
+                    } else if (!(value instanceof GridDirection)) {
+                        problems.add(fieldTypeError("direction", "a grid direction", value));
+                    }
+                    break;
+                }
+
                 default:
                     invalidFields.add(key);
             }

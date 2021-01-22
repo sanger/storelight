@@ -33,8 +33,8 @@ public class TestStoreAddressChecker {
     }
 
     static Stream<Arguments> checkItemsArguments() {
-        final Location loc1 = new Location(1, "STO-1", null, null, null, null);
-        final Location loc2 = new Location(2, "STO-2", null, null, null, new Size(2,2));
+        final Location loc1 = new Location(1, "STO-1", null, null, null, null, null);
+        final Location loc2 = new Location(2, "STO-2", null, null, null, new Size(2,2), null);
         final String loc1desc = "location (id=1, barcode=\"STO-1\")";
         final String loc2desc = "location (id=2, barcode=\"STO-2\")";
         final String loc2descSize = loc2desc + " (numRows=2, numColumns=2)";

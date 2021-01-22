@@ -1,8 +1,7 @@
 package uk.ac.sanger.storelight.requests;
 
 import com.google.common.base.MoreObjects;
-import uk.ac.sanger.storelight.model.Address;
-import uk.ac.sanger.storelight.model.Size;
+import uk.ac.sanger.storelight.model.*;
 
 import java.util.Objects;
 
@@ -17,14 +16,16 @@ public class LocationInput {
     private Integer parentId;
     private Address address;
     private Size size;
+    private GridDirection direction;
 
     public LocationInput() {}
 
-    public LocationInput(String description, Integer parentId, Address address, Size size) {
+    public LocationInput(String description, Integer parentId, Address address, Size size, GridDirection direction) {
         this.description = description;
         this.parentId = parentId;
         this.address = address;
         this.size = size;
+        this.direction = direction;
     }
 
     /**
@@ -76,6 +77,18 @@ public class LocationInput {
         this.size = size;
     }
 
+    /**
+     * The preferred direction of grid iteration, if any.
+     * @return the preferred direction of grid iteration, or null
+     */
+    public GridDirection getDirection() {
+        return this.direction;
+    }
+
+    public void setDirection(GridDirection direction) {
+        this.direction = direction;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -84,7 +97,8 @@ public class LocationInput {
         return (Objects.equals(this.description, that.description)
                 && Objects.equals(this.parentId, that.parentId)
                 && Objects.equals(this.address, that.address)
-                && Objects.equals(this.size, that.size));
+                && Objects.equals(this.size, that.size)
+                && this.direction==that.direction);
     }
 
     @Override
@@ -99,6 +113,8 @@ public class LocationInput {
                 .add("parentId", parentId)
                 .add("address", address)
                 .add("size", size)
+                .add("direction", direction)
+                .omitNullValues()
                 .toString();
     }
 }

@@ -7,6 +7,14 @@ type Size {
     numColumns: Int!,
 }
 
+"""A traversal order for a grid."""
+enum GridDirection {
+    """Right across the top row, then down to the next row, etc."""
+    RightDown
+    """Down the leftmost column, then right to the next column, etc."""
+    DownRight
+}
+
 """The size of some kind of grid"""
 input SizeInput {
     numRows: Int!,
@@ -64,6 +72,8 @@ type Location {
     """The designated size of this location. If this is given,
     any locations or stored things inside this location should be inside the given bounds."""
     size: Size, # a location may have a size (number of rows and columns)
+    """The preferred direction of iteration for the grid in this location."""
+    direction: GridDirection
 }
 
 """A specification of a thing to store, and where to store it."""
@@ -86,6 +96,8 @@ input LocationInput {
     address: Address,
     """The size of this location (optional)."""
     size: SizeInput,
+    """The preferred direction of iteration for the grid (if any)."""
+    direction: GridDirection
 }
 
 type Query {

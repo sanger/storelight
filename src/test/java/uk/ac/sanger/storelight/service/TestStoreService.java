@@ -95,7 +95,7 @@ public class TestStoreService {
         Location loc1 = new Location(1, "STO-1");
         Item occupant = new Item(100, "ITEM-100", loc1, A2);
         loc1.getStored().add(occupant);
-        Location loc2 = new Location(2, "STO-2", null, null, null, new Size(2, 2));
+        Location loc2 = new Location(2, "STO-2", null, null, null, new Size(2, 2), null);
         return Stream.of(
                 StoreBarcodeTestData.make()
                         .location(loc1)

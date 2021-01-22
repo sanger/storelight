@@ -30,18 +30,23 @@ public class Location {
     private List<Location> children;
     @Embedded
     private Size size;
+
+    @Column(columnDefinition = "enum('RightDown', 'DownRight')")
+    @Enumerated(EnumType.STRING)
+    private GridDirection direction;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy="location")
     private List<Item> stored;
 
     public Location() {
-        this(null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null);
     }
 
     public Location(Integer id, String barcode) {
-        this(id, barcode, null, null, null, null);
+        this(id, barcode, null, null, null, null, null);
     }
 
-    public Location(Integer id, String barcode, String description, Location parent, Address address, Size size) {
+    public Location(Integer id, String barcode, String description, Location parent, Address address, Size size, GridDirection direction) {
         this.id = id;
         this.barcode = barcode;
         this.description = description;
@@ -50,6 +55,7 @@ public class Location {
         this.size = size;
         this.children = new ArrayList<>();
         this.stored = new ArrayList<>();
+        this.direction = direction;
     }
 
     public Integer getId() {
@@ -116,6 +122,14 @@ public class Location {
         this.stored = newArrayList(stored);
     }
 
+    public GridDirection getDirection() {
+        return this.direction;
+    }
+
+    public void setDirection(GridDirection direction) {
+        this.direction = direction;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -125,7 +139,8 @@ public class Location {
                 && Objects.equals(this.barcode, that.barcode)
                 && Objects.equals(this.description, that.description)
                 && Objects.equals(this.address, that.address)
-                && Objects.equals(this.size, that.size));
+                && Objects.equals(this.size, that.size)
+                && this.direction==that.direction);
     }
 
     @Override
@@ -141,6 +156,8 @@ public class Location {
                 .add("description", repr(description))
                 .add("address", address)
                 .add("size", size)
+                .add("direction", direction)
+                .omitNullValues()
                 .toString();
     }
 }

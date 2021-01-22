@@ -3,6 +3,7 @@ mutation {
         address: "F12"
         description: " I like describing things. "
         size: {numRows: 10, numColumns: 11}
+        direction: DownRight
     }) {
         id
         barcode

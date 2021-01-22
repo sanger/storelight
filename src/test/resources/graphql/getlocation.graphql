@@ -8,5 +8,6 @@
         parent { id }
         children { id }
         stored { barcode }
+        direction
     }
 }
