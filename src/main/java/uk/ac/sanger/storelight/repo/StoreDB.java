@@ -11,12 +11,15 @@ public class StoreDB {
     private final BarcodeSeedRepo barcodeSeedRepo;
     private final ItemRepo itemRepo;
     private final LocationRepo locationRepo;
+    private final StoreRecordRepo storeRecordRepo;
 
     @Autowired
-    public StoreDB(BarcodeSeedRepo barcodeSeedRepo, ItemRepo itemRepo, LocationRepo locationRepo) {
+    public StoreDB(BarcodeSeedRepo barcodeSeedRepo, ItemRepo itemRepo, LocationRepo locationRepo,
+                   StoreRecordRepo storeRecordRepo) {
         this.barcodeSeedRepo = barcodeSeedRepo;
         this.itemRepo = itemRepo;
         this.locationRepo = locationRepo;
+        this.storeRecordRepo = storeRecordRepo;
     }
 
     public BarcodeSeedRepo getBarcodeSeedRepo() {
@@ -29,5 +32,9 @@ public class StoreDB {
 
     public LocationRepo getLocationRepo() {
         return this.locationRepo;
+    }
+
+    public StoreRecordRepo getStoreRecordRepo() {
+        return this.storeRecordRepo;
     }
 }

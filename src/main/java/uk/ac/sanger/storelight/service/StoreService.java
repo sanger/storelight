@@ -35,7 +35,8 @@ public class StoreService {
     private final StoreAddressChecker storeAddressChecker;
 
     @Autowired
-    public StoreService(EntityManager entityManager, StoreDB db, ItemBarcodeValidator itemBarcodeValidator, StoreAddressChecker storeAddressChecker) {
+    public StoreService(EntityManager entityManager, StoreDB db, ItemBarcodeValidator itemBarcodeValidator,
+                        StoreAddressChecker storeAddressChecker) {
         this.entityManager = entityManager;
         this.db = db;
         this.itemBarcodeValidator = itemBarcodeValidator;
@@ -62,6 +63,7 @@ public class StoreService {
         itemRepo.deleteAllByBarcodeIn(List.of(barcode));
         entityManager.flush();
         Item item = itemRepo.save(new Item(null, barcode, location, address));
+        db.getStoreRecordRepo().save(new StoreRecord(item.getBarcode(), item.getAddress(), item.getLocation().getId(), ctxt.getUsername(), ctxt.getApp()));
         log.info("Item stored {} by {}.", item, ctxt);
         entityManager.refresh(item.getLocation()); // Sometimes location doesn't have updated contents without this
         return item;
@@ -111,6 +113,7 @@ public class StoreService {
         if (log.isInfoEnabled()) {
             log.info("Items stored {} by {}.", iterableToString(saved), ctxt);
         }
+        List<StoreRecord> records = new ArrayList<>(items.size());
         Map<Integer, Location> refreshedLocations = new HashMap<>();
         for (Item item : saved) {
             Location refreshedLoc = refreshedLocations.get(item.getLocation().getId());
@@ -121,7 +124,9 @@ public class StoreService {
             } else {
                 item.setLocation(refreshedLoc);
             }
+            records.add(new StoreRecord(item.getBarcode(), item.getAddress(), item.getLocation().getId(), ctxt.getUsername(), ctxt.getApp()));
         }
+        db.getStoreRecordRepo().saveAll(records);
         return saved;
     }
 

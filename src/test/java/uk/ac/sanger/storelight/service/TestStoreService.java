@@ -34,6 +34,7 @@ public class TestStoreService {
     private StoreAddressChecker mockStoreAddressChecker;
     private ItemRepo mockItemRepo;
     private LocationRepo mockLocationRepo;
+    private StoreRecordRepo mockRecordRepo;
 
     private StoreService storeService;
     private StoreRequestContext ctxt;
@@ -46,9 +47,11 @@ public class TestStoreService {
         mockStoreAddressChecker = mock(StoreAddressChecker.class);
         mockItemRepo = mock(ItemRepo.class);
         mockLocationRepo = mock(LocationRepo.class);
+        mockRecordRepo = mock(StoreRecordRepo.class);
         final StoreDB mockDb = mock(StoreDB.class);
         when(mockDb.getLocationRepo()).thenReturn(mockLocationRepo);
         when(mockDb.getItemRepo()).thenReturn(mockItemRepo);
+        when(mockDb.getStoreRecordRepo()).thenReturn(mockRecordRepo);
 
         when(mockItemRepo.save(any())).then(invocation -> invocation.getArgument(0));
         when(mockItemRepo.saveAll(any())).then(invocation -> invocation.getArgument(0));
@@ -77,6 +80,7 @@ public class TestStoreService {
             order.verify(mockItemRepo).deleteAllByBarcodeIn(List.of(itemBarcode));
             order.verify(mockEntityManager).flush();
             order.verify(mockItemRepo).save(data.expectedResult);
+            verify(mockRecordRepo).save(new StoreRecord(itemBarcode, data.address, data.location.getId(), ctxt.getUsername(), ctxt.getApp()));
             return;
         }
         Exception ex = assertThrows(data.expectedException, () -> storeService.storeBarcode(ctxt, itemBarcode, li, data.address));
@@ -86,6 +90,7 @@ public class TestStoreService {
         verify(mockItemRepo, never()).deleteAllByBarcodeIn(any());
         verify(mockEntityManager, never()).flush();
         verify(mockItemRepo, never()).save(any());
+        verify(mockRecordRepo, never()).save(any());
     }
 
     static Stream<StoreBarcodeTestData> storeBarcodeTestData() {
@@ -329,6 +334,11 @@ public class TestStoreService {
         inOrder.verify(mockItemRepo).deleteAllByBarcodeIn(barcodeSet);
         inOrder.verify(mockEntityManager).flush();
         inOrder.verify(mockItemRepo).saveAll(items);
+        List<StoreRecord> records = items.stream()
+                .map(item -> new StoreRecord(item.getBarcode(), item.getAddress(), item.getLocation().getId(),
+                        ctxt.getUsername(), ctxt.getApp()))
+                .collect(toList());
+        verify(mockRecordRepo).saveAll(records);
     }
 
     private static class StoreBarcodeTestData {
@@ -485,11 +495,6 @@ public class TestStoreService {
 
         public StoreTestData locations(List<Location> locations) {
             this.locations = locations;
-            return this;
-        }
-
-        public StoreTestData expectedException(Class<? extends Exception> expectedException) {
-            this.expectedException = expectedException;
             return this;
         }
 
