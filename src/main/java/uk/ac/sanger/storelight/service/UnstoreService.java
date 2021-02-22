@@ -4,12 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import uk.ac.sanger.storelight.graphql.StoreRequestContext;
-import uk.ac.sanger.storelight.model.Item;
-import uk.ac.sanger.storelight.model.Location;
+import uk.ac.sanger.storelight.model.*;
 import uk.ac.sanger.storelight.repo.ItemRepo;
 import uk.ac.sanger.storelight.repo.StoreDB;
 import uk.ac.sanger.storelight.requests.LocationIdentifier;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -35,6 +35,7 @@ public class UnstoreService {
         Item item = itemRepo.findByBarcode(barcode).orElse(null);
         if (item!=null) {
             itemRepo.delete(item);
+            recordUnstores(ctxt, List.of(item));
             log.info("Stored item deleted {} by {}.", item, ctxt);
         }
         return item;
@@ -46,6 +47,7 @@ public class UnstoreService {
         List<Item> items = itemRepo.findAllByBarcodeIn(barcodes);
         if (!items.isEmpty()) {
             itemRepo.deleteAll(items);
+            recordUnstores(ctxt, items);
             log.info("Stored items deleted {} by {}.", iterableToString(items), ctxt);
         }
         return items;
@@ -59,7 +61,16 @@ public class UnstoreService {
         }
         List<Item> items = List.copyOf(location.getStored());
         db.getItemRepo().deleteAll(items);
+        recordUnstores(ctxt, items);
         log.info("Stored items deleted {} by {}.", iterableToString(items), ctxt);
         return items;
+    }
+
+    private Iterable<StoreRecord> recordUnstores(StoreRequestContext ctxt, List<Item> items) {
+        List<StoreRecord> records = new ArrayList<>(items.size());
+        for (Item item : items) {
+            records.add(new StoreRecord(item.getBarcode(), null, null, ctxt.getUsername(), ctxt.getApp()));
+        }
+        return db.getStoreRecordRepo().saveAll(records);
     }
 }
