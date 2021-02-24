@@ -69,50 +69,54 @@ public class TestLocationService {
     }
 
     static Stream<Arguments> createLocationArguments() {
-        Location par1 = new Location(1, "STO-1", null, null, null, null, null);
-        Location par2 = new Location(2, "STO-2", null, null, null, new Size(2, 2), null);
+        Location par1 = new Location(1, "STO-1");
+        Location par2 = new Location(2, "STO-2", null, null, null, null, new Size(2, 2), null);
         Address A1 = new Address(1, 1);
         Address A2 = new Address(1, 2);
         Address A3 = new Address(1, 3);
-        Location loc3 = new Location(3, "STO-3", null, par1, A2, null, null);
+        Location loc3 = new Location(3, "STO-3", null, null, par1, A2, null, null);
         par1.getChildren().add(loc3);
         String longDescription = IntStream.range(0, Location.MAX_DESCRIPTION/2).mapToObj(String::valueOf).collect(Collectors.joining());
 
         return Arrays.stream(new Object[][]{
                 {
-                        new Location(null, NEWBC, null, null, null, null, null),
-                        new LocationInput(null, null, null, null, null)
+                        new Location(null, NEWBC, null, null, null, null, null, null),
+                        new LocationInput(null, null, null, null, null, null)
                 },
                 {
-                        new Location(null, NEWBC, null, null, null, null, null),
-                        new LocationInput("    ", null, null, null, null)
+                        new Location(null, NEWBC, null, null, null, null, null, null),
+                        new LocationInput("   ", "    ", null, null, null, null)
                 },
                 {
-                        new Location(null, NEWBC, "Bananas", par1, A1, new Size(3, 4), null),
-                        new LocationInput("Bananas ", par1.getId(), A1, new Size(3, 4), null),
+                        new Location(null, NEWBC, "Alpha", "Bananas", par1, A1, new Size(3, 4), null),
+                        new LocationInput("Alpha  ", "Bananas ", par1.getId(), A1, new Size(3, 4), null),
                         par1
                 },
                 {
                         EntityNotFoundException.class,
-                        new LocationInput(null, 404, null, null, null),
+                        new LocationInput(null, null, 404, null, null, null),
                 },
                 {
                         "A location with no parent cannot have an address.",
-                        new LocationInput(null, null, A1, null, null)
+                        new LocationInput(null, null, null, A1, null, null)
                 },
                 {
                         "The address A3 is outside the listed size (numRows=2, numColumns=2) for the parent.",
-                        new LocationInput(null, par2.getId(), A3, null, null),
+                        new LocationInput(null, null, par2.getId(), A3, null, null),
                         par2
                 },
                 {
                         "There is already a location at address A2 in the parent.",
-                        new LocationInput(null, par1.getId(), A2, null, null),
+                        new LocationInput(null, null, par1.getId(), A2, null, null),
                         par1
                 },
                 {
                         "Location description is too long (max length: "+Location.MAX_DESCRIPTION+").",
-                        new LocationInput(longDescription, null, null, null, null)
+                        new LocationInput(null, longDescription, null, null, null, null)
+                },
+                {
+                        "Location name is too long (max length: "+Location.MAX_NAME+").",
+                        new LocationInput(longDescription, null, null, null, null, null)
                 },
         }).map(arr -> (arr.length==2 ? Arguments.of(arr[0], arr[1], null) : Arguments.of(arr)));
     }
@@ -177,14 +181,15 @@ public class TestLocationService {
                 Arguments.of(new Location(3, "STO-3"), noChange, null, null),
                 Arguments.of(new Location(3, "STO-3"), blankAll, null, null),
                 Arguments.of(new Location(3, "STO-3"), Map.of("description", "    "), null, null),
-                Arguments.of(new Location(3, "STO-3"), changeAll, newParent, new Location(3, "STO-3", "New description.", newParent, B3, size45, null)),
+                Arguments.of(new Location(3, "STO-3"), Map.of("name", "    "), null, null),
+                Arguments.of(new Location(3, "STO-3"), changeAll, newParent, new Location(3, "STO-3", null, "New description.", newParent, B3, size45, null)),
 
-                Arguments.of(new Location(3, "STO-3", "Complex location.", parent, A2, size34, null), noChange, null, null),
-                Arguments.of(new Location(3, "STO-3", "Complex location.", parent, A2, size34, null), Map.of("description", "   "),
-                        parent, new Location(3, "STO-3", null, parent, A2, size34, null)),
-                Arguments.of(new Location(3, "STO-3", "Complex location.", parent, A2, size34, null), changeAll, newParent,
-                        new Location(3, "STO-3", "New description.", newParent, B3, size45, null)),
-                Arguments.of(new Location(3, "STO-3", "Complex location.", parent, A2, size34, null), blankAll, null,
+                Arguments.of(new Location(3, "STO-3", null, "Complex location.", parent, A2, size34, null), noChange, null, null),
+                Arguments.of(new Location(3, "STO-3", null, "Complex location.", parent, A2, size34, null), Map.of("description", "   "),
+                        parent, new Location(3, "STO-3", null, null, parent, A2, size34, null)),
+                Arguments.of(new Location(3, "STO-3", null, "Complex location.", parent, A2, size34, null), changeAll, newParent,
+                        new Location(3, "STO-3", null, "New description.", newParent, B3, size45, null)),
+                Arguments.of(new Location(3, "STO-3", null, "Complex location.", parent, A2, size34, null), blankAll, null,
                         new Location(3, "STO-3"))
         );
     }
@@ -228,7 +233,7 @@ public class TestLocationService {
         a.getChildren().add(c);
         final Address A1 = new Address(1,1);
         final Map<String, Integer> sizeMap = Map.of("numRows", 2, "numColumns", 3);
-        final Map<String, Object> fullFields = Map.of("address", A1, "description", "Ilikepie", "parentId", b.getId(), "size", sizeMap);
+        final Map<String, Object> fullFields = Map.of("address", A1, "name", "newname", "description", "Ilikepie", "parentId", b.getId(), "size", sizeMap);
         final Map<String, Object> nullFields = new HashMap<>(fullFields.size());
         for (String key : fullFields.keySet()) {
             nullFields.put(key, null);
@@ -246,6 +251,8 @@ public class TestLocationService {
                 new ValidateChangesData(c).changes(fullFields).parent(b).newAddress(A1).parentError("Problem with parent and address.").expectedError("Problem with parent and address."),
                 new ValidateChangesData(c).change("description", longDesc).expectedError(longDescError),
                 new ValidateChangesData(c).change("description", 17).expectedError("Require description to be a string, but received java.lang.Integer."),
+                new ValidateChangesData(c).change("name", 20).expectedError("Require name to be a string, but received java.lang.Integer."),
+                new ValidateChangesData(c).change("name", longDesc).expectedError("Name too long ("+longDesc.length()+"). Max length is "+Location.MAX_NAME+"."),
                 new ValidateChangesData(c).change("parentId", c.getId()).expectedError("A location cannot be its own parent."),
                 new ValidateChangesData(c).change("parentId", "Bananas").expectedError("Require parentId to be an integer, but received java.lang.String."),
                 new ValidateChangesData(c).change("parentId", 404).expectedError("Invalid parent id: 404."),
@@ -268,11 +275,11 @@ public class TestLocationService {
     }
 
     static Stream<Arguments> checkParentWithAddressArguments() {
-        Location loc1 = new Location(1, "STO-1", null, null, null, null, null);
-        Location loc2 = new Location(2, "STO-2", null, null, null, new Size(2,2), null);
-        Location loc3 = new Location(3, "STO-3", null, loc1, new Address(3,4), null, null);
+        Location loc1 = new Location(1, "STO-1", null, null, null, null, null, null);
+        Location loc2 = new Location(2, "STO-2", null, null, null, null, new Size(2,2), null);
+        Location loc3 = new Location(3, "STO-3", null, null, loc1, new Address(3,4), null, null);
         loc1.getChildren().add(loc3);
-        Location loc4 = new Location(4, "STO-4", null, null, null, null, null);
+        Location loc4 = new Location(4, "STO-4", null, null, null, null, null, null);
         return Stream.of(
                 Arguments.of(loc4, loc1, new Address(1,2), null),
                 Arguments.of(loc4, loc1, null, null, null),
@@ -292,11 +299,11 @@ public class TestLocationService {
     }
 
     static Stream<Arguments> checkCycleArguments() {
-        Location a = new Location(1, "STO-1", null, null, null, null, null);
-        Location a1 = new Location(2, "STO-2", null, a, null, null, null);
-        Location a2 = new Location(3, "STO-3", null, a, null, null, null);
-        Location b = new Location(4, "STO-4", null, null, null, null, null);
-        Location a11 = new Location(5, "STO-5", null, a1, null, null, null);
+        Location a = new Location(1, "STO-1", null, null, null, null, null, null);
+        Location a1 = new Location(2, "STO-2", null, null, a, null, null, null);
+        Location a2 = new Location(3, "STO-3", null, null, a, null, null, null);
+        Location b = new Location(4, "STO-4", null, null, null, null, null, null);
+        Location a11 = new Location(5, "STO-5", null, null, a1, null, null, null);
 
         a.getChildren().add(a1);
         a.getChildren().add(a2);

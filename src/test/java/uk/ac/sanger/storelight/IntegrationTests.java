@@ -43,6 +43,7 @@ public class IntegrationTests {
             Object response = tester.post(query);
             Object locData = chainGet(response, "data", "location");
             assertEquals(chainGet(locData, "barcode"), freezerLi.getBarcode());
+            assertEquals(chainGet(locData, "name"), "Freezer Alpha");
             assertEquals(chainGet(locData, "id"), freezerId);
             assertEquals(chainGet(locData, "description"), "A freezer.");
             assertNull(chainGet(locData, "size"));
@@ -90,6 +91,7 @@ public class IntegrationTests {
         response = tester.post(editMutation);
         Map<String,?> info = chainGet(response, "data", "editLocation");
         assertEquals(id, info.get("id"));
+        assertEquals("New name", info.get("name"));
         assertEquals("I like describing things.", info.get("description"));
         assertEquals(Map.of("numRows", 10, "numColumns", 11), info.get("size"));
         assertEquals("F12", info.get("address").toString());

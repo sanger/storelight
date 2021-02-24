@@ -1,12 +1,14 @@
 mutation {
     editLocation(location: {id:1}, change: {
         address: "F12"
+        name: "New name"
         description: " I like describing things. "
         size: {numRows: 10, numColumns: 11}
         direction: DownRight
     }) {
         id
         barcode
+        name
         description
         size {numRows, numColumns}
         address

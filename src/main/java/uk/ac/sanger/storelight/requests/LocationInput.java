@@ -12,6 +12,7 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
  * @author dr6
  */
 public class LocationInput {
+    private String name;
     private String description;
     private Integer parentId;
     private Address address;
@@ -20,12 +21,22 @@ public class LocationInput {
 
     public LocationInput() {}
 
-    public LocationInput(String description, Integer parentId, Address address, Size size, GridDirection direction) {
+    public LocationInput(String name, String description, Integer parentId, Address address, Size size, GridDirection direction) {
+        this.name = name;
         this.description = description;
         this.parentId = parentId;
         this.address = address;
         this.size = size;
         this.direction = direction;
+    }
+
+    /** A name of this location (does not have to be unique). */
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -95,6 +106,7 @@ public class LocationInput {
         if (o == null || getClass() != o.getClass()) return false;
         LocationInput that = (LocationInput) o;
         return (Objects.equals(this.description, that.description)
+                && Objects.equals(this.name, that.name)
                 && Objects.equals(this.parentId, that.parentId)
                 && Objects.equals(this.address, that.address)
                 && Objects.equals(this.size, that.size)
@@ -103,12 +115,13 @@ public class LocationInput {
 
     @Override
     public int hashCode() {
-        return Objects.hash(description, parentId, address, size);
+        return Objects.hash(name, description, parentId, address, size);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("name", repr(name))
                 .add("description", repr(description))
                 .add("parentId", parentId)
                 .add("address", address)

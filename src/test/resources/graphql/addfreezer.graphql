@@ -1,6 +1,7 @@
 mutation {
     addLocation(location:{
         description: "A freezer."
+        name: "Freezer Alpha"
     }) {
         barcode
         id

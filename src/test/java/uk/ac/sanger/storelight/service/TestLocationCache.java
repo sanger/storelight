@@ -31,7 +31,7 @@ public class TestLocationCache {
     void setup() {
         mockLocationRepo = mock(LocationRepo.class);
         locations = IntStream.range(1, 6)
-                .mapToObj(id -> new Location(id, "STO-"+id, null, null, null, null, null))
+                .mapToObj(id -> new Location(id, "STO-"+id))
                 .collect(toList());
         when(mockLocationRepo.findAllById(any())).thenAnswer(invocation -> {
             Set<Integer> ids = invocation.getArgument(0);
