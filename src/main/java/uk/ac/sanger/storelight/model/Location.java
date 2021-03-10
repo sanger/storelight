@@ -14,13 +14,14 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
  */
 @Entity
 public class Location {
-    public static final int MAX_DESCRIPTION = 256;
+    public static final int MAX_DESCRIPTION = 256, MAX_NAME = 64;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String barcode;
+    private String name;
     private String description;
     @ManyToOne(fetch = FetchType.LAZY)
     private Location parent;
@@ -39,16 +40,17 @@ public class Location {
     private List<Item> stored;
 
     public Location() {
-        this(null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null);
     }
 
     public Location(Integer id, String barcode) {
-        this(id, barcode, null, null, null, null, null);
+        this(id, barcode, null, null, null, null, null, null);
     }
 
-    public Location(Integer id, String barcode, String description, Location parent, Address address, Size size, GridDirection direction) {
+    public Location(Integer id, String barcode, String name, String description, Location parent, Address address, Size size, GridDirection direction) {
         this.id = id;
         this.barcode = barcode;
+        this.name = name;
         this.description = description;
         this.parent = parent;
         this.address = address;
@@ -72,6 +74,14 @@ public class Location {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -137,6 +147,7 @@ public class Location {
         Location that = (Location) o;
         return (Objects.equals(this.id, that.id)
                 && Objects.equals(this.barcode, that.barcode)
+                && Objects.equals(this.name, that.name)
                 && Objects.equals(this.description, that.description)
                 && Objects.equals(this.address, that.address)
                 && Objects.equals(this.size, that.size)
@@ -153,6 +164,7 @@ public class Location {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("barcode", repr(barcode))
+                .add("name", repr(name))
                 .add("description", repr(description))
                 .add("address", address)
                 .add("size", size)

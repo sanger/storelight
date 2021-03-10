@@ -59,6 +59,8 @@ type Location {
     id: Int!,
     """The barcode of the location."""
     barcode: String!,
+    """A name for the location (non-unique)."""
+    name: String,
     """The description of the location, if it has one."""
     description: String, # a location may have a description
     """The location that this location is inside, if any."""
@@ -88,6 +90,8 @@ input StoreInput {
 
 """A specification of a location."""
 input LocationInput {
+    """A name (if any) for the location (non-unique)."""
+    name: String,
     """The description (if any) that the location should have."""
     description: String,
     """The id of the location that the location should be inside (if any)."""

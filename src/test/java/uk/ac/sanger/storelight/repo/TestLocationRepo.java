@@ -25,7 +25,7 @@ public class TestLocationRepo {
     @Test
     @Transactional
     public void testSaveLocation() {
-        Location parent = new Location(null, "STO-001F", "parent desc", null, null, null, null);
+        Location parent = new Location(null, "STO-001F", "parent", "parent desc", null, null, null, null);
         parent = locationRepo.save(parent);
         checkLocation(parent, null, "STO-001F", "parent desc", null, null, null, null);
         assertThat(parent.getChildren()).isEmpty();
@@ -34,7 +34,7 @@ public class TestLocationRepo {
         parent = locationRepo.getById(parentId);
         checkLocation(parent, parentId, "STO-001F", "parent desc", null, null, null, null);
 
-        Location loc1 = new Location(null, "STO-002E", "loc1 desc", parent,
+        Location loc1 = new Location(null, "STO-002E", "loc1", "loc1 desc", parent,
                 new Address(2,3), new Size(4,5), GridDirection.RightDown);
         loc1 = locationRepo.save(loc1);
         checkLocation(loc1, null, "STO-002E", "loc1 desc", parentId, new Address(2,3),

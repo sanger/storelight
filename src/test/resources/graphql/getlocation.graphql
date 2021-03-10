@@ -2,6 +2,7 @@
     location(location: {id:1}) {
         barcode
         id
+        name
         description
         address
         size { numRows, numColumns}

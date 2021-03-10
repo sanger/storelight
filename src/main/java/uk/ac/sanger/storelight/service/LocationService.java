@@ -62,8 +62,17 @@ public class LocationService {
                 throw new IllegalArgumentException("Location description is too long (max length: "+Location.MAX_DESCRIPTION+").");
             }
         }
+        String name = lin.getName();
+        if (name!=null) {
+            name = name.trim();
+            if (name.isEmpty()) {
+                name = null;
+            } else if (name.length() > Location.MAX_NAME) {
+                throw new IllegalArgumentException("Location name is too long (max length: "+Location.MAX_NAME+").");
+            }
+        }
         String barcode = db.getBarcodeSeedRepo().createStoreBarcode();
-        Location loc = new Location(null, barcode, desc, parent, address, lin.getSize(), lin.getDirection());
+        Location loc = new Location(null, barcode, name, desc, parent, address, lin.getSize(), lin.getDirection());
         Location savedLoc = db.getLocationRepo().save(loc);
         log.info("New location created {} by {}.", savedLoc, context);
         return savedLoc;
@@ -97,6 +106,20 @@ public class LocationService {
                     if (!Objects.equals(location.getDescription(), desc)) {
                         changed = true;
                         location.setDescription(desc);
+                    }
+                    break;
+                }
+                case "name": {
+                    String name = (String) entry.getValue();
+                    if (name != null) {
+                        name = name.trim();
+                        if (name.isEmpty()) {
+                            name = null;
+                        }
+                    }
+                    if (!Objects.equals(location.getName(), name)) {
+                        changed = true;
+                        location.setName(name);
                     }
                     break;
                 }
@@ -188,6 +211,21 @@ public class LocationService {
                     int len = ((String) value).trim().length();
                     if (len > Location.MAX_DESCRIPTION) {
                         problems.add(String.format("Description too long (%s). Max length is %s.", len, Location.MAX_DESCRIPTION));
+                    }
+                    break;
+                }
+
+                case "name": {
+                    if (value==null) {
+                        break;
+                    }
+                    if (!(value instanceof String)) {
+                        problems.add(fieldTypeError("name", "a string", value));
+                        break;
+                    }
+                    int len = ((String) value).trim().length();
+                    if (len > Location.MAX_NAME) {
+                        problems.add(String.format("Name too long (%s). Max length is %s.", len, Location.MAX_NAME));
                     }
                     break;
                 }
