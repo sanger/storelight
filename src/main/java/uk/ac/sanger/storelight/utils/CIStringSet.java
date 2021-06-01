@@ -107,38 +107,44 @@ public class CIStringSet implements Set<String> {
 
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
-        Set<String> uc = c.stream()
-                .filter(x -> x instanceof String)
-                .map(x -> ((String) x).toUpperCase())
-                .collect(Collectors.toSet());
-        Set<String> newSet = new HashSet<>();
-        List<String> newList = new ArrayList<>();
-        for (String s : list) {
-            String su = s.toUpperCase();
-            if (uc.contains(su)) {
-                newSet.add(su);
-                newList.add(s);
-            }
-        }
-        if (newSet.size()==set.size()) {
+        if (this.isEmpty() || this==c) {
             return false;
         }
-        this.set = newSet;
-        this.list = newList;
-        return true;
+        if (c.isEmpty()) {
+            clear();
+            return true;
+        }
+        return removeOrRetain(c, true);
     }
 
     @Override
     public boolean removeAll(@NotNull Collection<?> c) {
-        Set<String> uc = c.stream()
-                .filter(x -> x instanceof String)
-                .map(x -> ((String) x).toUpperCase())
-                .collect(Collectors.toSet());
+        if (c.isEmpty() || this.isEmpty()) {
+            return false;
+        }
+        if (c==this) {
+            //noinspection ConstantConditions
+            clear();
+            return true;
+        }
+        return removeOrRetain(c, false);
+    }
+
+    private boolean removeOrRetain(Collection<?> c, boolean retain) {
+        Set<String> uc;
+        if (c instanceof CIStringSet) {
+            uc = ((CIStringSet) c).set;
+        } else {
+            uc = c.stream()
+                    .filter(x -> x instanceof String)
+                    .map(x -> ((String) x).toUpperCase())
+                    .collect(Collectors.toSet());
+        }
         Set<String> newSet = new HashSet<>();
         List<String> newList = new ArrayList<>();
         for (String s : list) {
             String su = s.toUpperCase();
-            if (!uc.contains(su)) {
+            if (uc.contains(su)==retain) {
                 newSet.add(su);
                 newList.add(s);
             }
@@ -174,7 +180,7 @@ public class CIStringSet implements Set<String> {
     }
 
     public static CIStringSet of(String... strings) {
-        return new CIStringSet(List.of(strings));
+        return new CIStringSet(Arrays.asList(strings));
     }
 
     @Override

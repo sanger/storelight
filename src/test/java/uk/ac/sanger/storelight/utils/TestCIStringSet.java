@@ -63,6 +63,9 @@ public class TestCIStringSet {
 
         strings.removeAll(List.of("alaska", "colorado"));
         assertEquals(CIStringSet.of("Alabama", "Arizona", "ARKANSAS"), strings);
+
+        strings.retainAll(List.of("Arizona", "ARIZONA"));
+        assertEquals(CIStringSet.of("Arizona"), strings);
     }
 
     @Test
