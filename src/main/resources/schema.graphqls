@@ -76,6 +76,8 @@ type Location {
     size: Size, # a location may have a size (number of rows and columns)
     """The preferred direction of iteration for the grid in this location."""
     direction: GridDirection
+    """The name (or barcode) if this item and all its containers, including the barcode of the topmost element."""
+    qualifiedNameWithFirstBarcode: String!
 }
 
 """A specification of a thing to store, and where to store it."""

@@ -5,6 +5,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Much copied from the corresponding class in CGAP lims
  * @author dr6
@@ -115,6 +117,17 @@ public class BasicUtils {
         List<E> list = new ArrayList<>();
         items.forEach(list::add);
         return list;
+    }
+
+    /**
+     * Returns an iterable for going through a list in reverse order.
+     * @param list a list to iterate
+     * @param <E> the type of elements to be emitted from the iterator
+     * @return an iterable to go through the list in reverse order
+     */
+    public static <E> Iterable<E> reverseIter(List<? extends E> list) {
+        requireNonNull(list);
+        return () -> new ReverseIterator<>(list.listIterator(list.size()));
     }
 
     public static <E> String iterableToString(Iterable<E> items, Function<? super E, String> stringFunction) {

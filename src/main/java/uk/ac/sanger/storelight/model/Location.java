@@ -1,12 +1,12 @@
 package uk.ac.sanger.storelight.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 
 import javax.persistence.*;
 import java.util.*;
 
-import static uk.ac.sanger.storelight.utils.BasicUtils.newArrayList;
-import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
+import static uk.ac.sanger.storelight.utils.BasicUtils.*;
 
 /**
  * A location that might contain stored items or other locations
@@ -138,6 +138,46 @@ public class Location {
 
     public void setDirection(GridDirection direction) {
         this.direction = direction;
+    }
+
+    @JsonIgnore
+    public String getQualifiedNameWithFirstBarcode() {
+        List<Location> hierarchy = getHierarchy();
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (Location loc : reverseIter(hierarchy)) {
+            String name = loc.getName();
+            if (name!=null && name.isEmpty()) {
+                name = null;
+            }
+            if (first) {
+                sb.append(loc.getBarcode());
+                if (name!=null) {
+                    sb.append(' ').append(name);
+                }
+                first = false;
+            } else {
+                sb.append(" / ");
+                if (name!=null) {
+                    sb.append(name);
+                } else if (loc.getAddress()!=null) {
+                    sb.append(loc.getAddress());
+                } else {
+                    sb.append(loc.getBarcode());
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    private List<Location> getHierarchy() {
+        List<Location> hierarchy = new ArrayList<>();
+        Location cur = this;
+        while (cur != null) {
+            hierarchy.add(cur);
+            cur = cur.getParent();
+        }
+        return hierarchy;
     }
 
     @Override

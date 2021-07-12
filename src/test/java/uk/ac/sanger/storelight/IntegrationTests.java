@@ -76,6 +76,9 @@ public class IntegrationTests {
         List<?> children = chainGetList(response, "data", "location", "children");
         assertThat(children).hasSize(1);
         assertEquals(id, chainGet(children, 0, "id"));
+
+        response = tester.post(getLocationQuery.replace("{id:1}", "{id:"+id+"}"));
+        assertEquals(freezerLi.getBarcode()+" Freezer Alpha / A2", chainGet(response, "data", "location", "qualifiedNameWithFirstBarcode"));
     }
 
     @Test
