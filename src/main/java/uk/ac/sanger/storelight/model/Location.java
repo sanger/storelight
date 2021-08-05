@@ -32,7 +32,7 @@ public class Location {
     @Embedded
     private Size size;
 
-    @Column(columnDefinition = "enum('RightDown', 'DownRight')")
+    @Column(columnDefinition = "enum('RightDown', 'DownRight', 'RightUp', 'UpRight')")
     @Enumerated(EnumType.STRING)
     private GridDirection direction;
 
