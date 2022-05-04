@@ -16,3 +16,16 @@ Performing any mutation via the GraphQL schema requires a valid API key.
 The API key can be supplied through a header with the name `STORELIGHT-APIKEY`. You can also supply a username which will be logged against the request, using the header `STORELIGHT-USER`. No verification is performed on the username.
 
 (For convenience, you can also supply these values in the `variables` section of the GraphQL request.)
+
+## Database Setup:
+
+* Install MySQL  via home-brew
+* Create a schema in your local mysql db called storelight
+  * This can be done by running `CREATE SCHEMA storelight DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+* Create a storelight user to match the details in `application.properties`
+  * This can be done by running
+  ```
+    create user 'storelight'@'%' identified by 'storelightpassword';
+    grant delete, insert, execute, select, update on `storelight%`.* to 'storelight'@'%';
+  ```
+* Using the `storelight-sql` repo, follow the sequence.txt file to create storelight tables and dummy data
