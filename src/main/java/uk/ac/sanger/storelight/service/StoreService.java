@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static uk.ac.sanger.storelight.utils.BasicUtils.coalesce;
 import static uk.ac.sanger.storelight.utils.BasicUtils.iterableToString;
@@ -132,5 +133,28 @@ public class StoreService {
 
     private CIStringSet validateItemBarcodes(Stream<String> barcodes) {
         return itemBarcodeValidator.validateItemBarcodes(barcodes);
+    }
+
+    public Iterable<Item> transfer(StoreRequestContext ctxt, LocationIdentifier srcLi, LocationIdentifier dstLi) {
+        Location source = db.getLocationRepo().get(srcLi);
+        Location destination = db.getLocationRepo().get(dstLi);
+
+        if (source.getId().equals(destination.getId())) {
+            throw new IllegalArgumentException("The source cannot be the destination.");
+        }
+
+        List<Item> oldItems = source.getStored();
+        if (oldItems.isEmpty()) {
+            return List.of();
+        }
+
+        List<Item> newItems = oldItems.stream()
+                .map(old -> new Item(null, old.getBarcode(), destination, old.getAddress()))
+                .collect(toList());
+        CIStringSet itemBarcodes = new CIStringSet(oldItems.stream()
+                .map(Item::getBarcode)
+                .collect(toCollection(CIStringSet::new)));
+        storeAddressChecker.checkItems(newItems, itemBarcodes);
+        return storeItems(ctxt, newItems, itemBarcodes);
     }
 }

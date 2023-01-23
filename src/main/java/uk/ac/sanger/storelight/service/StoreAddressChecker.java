@@ -17,7 +17,7 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
 @Service
 public class StoreAddressChecker {
 
-    public void checkItems(Collection<Item> items, CIStringSet barcodes) {
+    public void checkItems(Collection<Item> items, CIStringSet barcodes) throws IllegalArgumentException {
         Map<Integer, Map<Address, Item>> contentCache = new HashMap<>();
         Set<Destination> seenDestinations = new HashSet<>();
         Set<Destination> repeated = new LinkedHashSet<>();

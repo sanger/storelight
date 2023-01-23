@@ -130,6 +130,9 @@ type Mutation {
     """Store the given list of things at the specified locations, using the separately
     specified location id or barcode for items that do not specify a location."""
     store(store: [StoreInput!]!, location: LocationIdentifier!): StoreResult!
+    """Move all items stored (directly) in the indicated location id or barcode to another location
+    (returning the list of what was stored). The destination must have a layout that can accommodate the contents."""
+    transfer(source: LocationIdentifier!, destination: LocationIdentifier!): StoreResult!
 
     """Remove the given item from storage (return stored item information, if any)."""
     unstoreBarcode(barcode: String!): Item

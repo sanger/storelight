@@ -5,6 +5,7 @@ import uk.ac.sanger.storelight.model.Location;
 import uk.ac.sanger.storelight.requests.LocationIdentifier;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Collection;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -13,17 +14,17 @@ import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
 public interface LocationRepo extends CrudRepository<Location, Integer> {
     Optional<Location> findByBarcode(String barcode);
 
-    Iterable<Location> findAllByBarcodeIn(Iterable<String> barcodes);
+    Iterable<Location> findAllByBarcodeIn(Collection<String> barcode);
 
-    default Location getById(final Integer id) {
+    default Location getById(final Integer id) throws EntityNotFoundException {
         return findById(id).orElseThrow(() -> new EntityNotFoundException("No location found with id "+id));
     }
 
-    default Location getByBarcode(final String barcode) {
+    default Location getByBarcode(final String barcode) throws EntityNotFoundException {
         return findByBarcode(barcode).orElseThrow(() -> new EntityNotFoundException("No location found with barcode "+repr(barcode)));
     }
 
-    default Location get(LocationIdentifier li) {
+    default Location get(LocationIdentifier li) throws EntityNotFoundException {
         requireNonNull(li, "Null location identifier given.");
         if (li.getId()!=null) {
             Location loc = getById(li.getId());

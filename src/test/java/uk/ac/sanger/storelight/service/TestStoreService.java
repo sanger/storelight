@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -341,6 +342,90 @@ public class TestStoreService {
         verify(mockRecordRepo).saveAll(records);
     }
 
+    @ParameterizedTest
+    @MethodSource("transferTestData")
+    public void testTransfer(TransferTestData data) {
+        StoreRequestContext ctxt = new StoreRequestContext(null, "STAN", "user1");
+        if (data.source==null) {
+            when(mockLocationRepo.get(data.sourceLi)).thenThrow(new EntityNotFoundException("No such location."));
+        } else {
+            when(mockLocationRepo.get(data.sourceLi)).thenReturn(data.source);
+        }
+        if (data.destination==null) {
+            when(mockLocationRepo.get(data.destinationLi)).thenThrow(new EntityNotFoundException("No such location."));
+        } else {
+            when(mockLocationRepo.get(data.destinationLi)).thenReturn(data.destination);
+        }
+
+        CIStringSet barcodes;
+        if (data.expectedResult!=null) {
+            barcodes = data.expectedResult.stream()
+                    .map(Item::getBarcode)
+                    .collect(Collectors.toCollection(CIStringSet::new));
+        } else {
+            barcodes = null;
+        }
+
+        if (data.expectedErrorMessage==null) {
+            assert data.expectedResult != null;
+            if (!data.expectedResult.isEmpty()) {
+                doAnswer(invocation -> invocation.getArgument(1))
+                        .when(storeService).storeItems(any(), any(), any());
+            }
+            assertEquals(data.expectedResult, storeService.transfer(ctxt, data.sourceLi, data.destinationLi));
+            if (data.expectedResult.isEmpty()) {
+                verifyNoInteractions(mockStoreAddressChecker);
+                verify(storeService, never()).storeItems(any(), any(), any());
+            } else {
+                verify(mockStoreAddressChecker).checkItems(data.expectedResult, barcodes);
+                verify(storeService).storeItems(ctxt, data.expectedResult, barcodes);
+            }
+            return;
+        }
+
+        if (data.checkerError!=null) {
+            doThrow(new IllegalArgumentException(data.checkerError))
+                    .when(mockStoreAddressChecker).checkItems(any(), any());
+
+        }
+
+        assertThat(assertThrows(RuntimeException.class, () -> storeService.transfer(ctxt, data.sourceLi, data.destinationLi)))
+                .hasMessage(data.expectedErrorMessage);
+
+        if (data.checkerError!=null) {
+            verify(mockStoreAddressChecker).checkItems(data.expectedResult, barcodes);
+        } else {
+            verifyNoInteractions(mockStoreAddressChecker);
+        }
+        verify(storeService, never()).storeItems(any(), any(), any());
+
+    }
+
+    static Stream<TransferTestData> transferTestData() {
+        Location source = new Location(100, "STO-100");
+        source.setStored(List.of(
+                new Item(10, "ITEM-10", source, new Address(1,1)),
+                new Item(11, "ITEM-11", source, null)
+        ));
+        Location emptySource = new Location(101, "STO-101");
+        Location destination = new Location(200, "STO-200");
+        List<Item> newItems = List.of(
+                new Item(null, "ITEM-10", destination, new Address(1,1)),
+                new Item(null, "ITEM-11", destination, null)
+        );
+        LocationIdentifier unknownLi = new LocationIdentifier(404);
+
+        return Arrays.stream(new TransferTestData[] {
+                new TransferTestData("success", source, destination).expectedResult(newItems),
+                new TransferTestData("empty source", emptySource, destination).expectedResult(List.of()),
+                new TransferTestData("same location", source, source).expectedErrorMessage("The source cannot be the destination."),
+                new TransferTestData("same location with different identifier", source, source).destinationLi(new LocationIdentifier(source.getBarcode())).expectedErrorMessage("The source cannot be the destination."),
+                new TransferTestData("unknown destination", source, null).destinationLi(unknownLi).expectedErrorMessage("No such location."),
+                new TransferTestData("unknown source", null, destination).sourceLi(unknownLi).expectedErrorMessage("No such location."),
+                new TransferTestData("checker error", source, destination).expectedResult(newItems).checkerError("Cannot put that in there."),
+        });
+    }
+
     private static class StoreBarcodeTestData {
         private Address address;
         private String itemBarcodeError;
@@ -501,6 +586,73 @@ public class TestStoreService {
         public StoreTestData locationLookupError(String locationLookupError) {
             this.locationLookupError = locationLookupError;
             return this;
+        }
+    }
+
+    private static class TransferTestData {
+        String desc;
+        Location source;
+        Location destination;
+        LocationIdentifier sourceLi;
+        LocationIdentifier destinationLi;
+        String checkerError;
+        String expectedErrorMessage;
+        List<Item> expectedResult;
+
+        public TransferTestData(String desc) {
+            this.desc = desc;
+        }
+
+        public TransferTestData(String desc, Location source, Location destination) {
+            this(desc);
+            source(source);
+            destination(destination);
+        }
+
+        public TransferTestData source(Location source) {
+            this.source = source;
+            if (source!=null) {
+                this.sourceLi = new LocationIdentifier(source.getId());
+            }
+            return this;
+        }
+
+        public TransferTestData destination(Location destination) {
+            this.destination = destination;
+            if (destination!=null) {
+                this.destinationLi = new LocationIdentifier(destination.getId());
+            }
+            return this;
+        }
+
+        public TransferTestData sourceLi(LocationIdentifier sourceLi) {
+            this.sourceLi = sourceLi;
+            return this;
+        }
+
+        public TransferTestData destinationLi(LocationIdentifier destinationLi) {
+            this.destinationLi = destinationLi;
+            return this;
+        }
+
+        public TransferTestData checkerError(String checkerError) {
+            this.checkerError = checkerError;
+            return expectedErrorMessage(checkerError);
+        }
+
+        public TransferTestData expectedErrorMessage(String expectedErrorMessage) {
+            this.expectedErrorMessage = expectedErrorMessage;
+            return this;
+        }
+
+        public TransferTestData expectedResult(List<Item> expectedResult) {
+            this.expectedResult = expectedResult;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return this.desc;
         }
     }
 }

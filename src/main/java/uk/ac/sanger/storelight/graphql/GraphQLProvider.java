@@ -80,6 +80,7 @@ public class GraphQLProvider {
                         .dataFetcher("storeBarcode", transact(storeMutations.storeBarcode()))
                         .dataFetcher("storeBarcodes", transact(storeMutations.storeBarcodes()))
                         .dataFetcher("store", transact(storeMutations.store()))
+                        .dataFetcher("transfer", transact(storeMutations.transfer()))
 
                         .dataFetcher("unstoreBarcode", transact(unstoreMutations.unstoreBarcode()))
                         .dataFetcher("unstoreBarcodes", transact(unstoreMutations.unstoreBarcodes()))

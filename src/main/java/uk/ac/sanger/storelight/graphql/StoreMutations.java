@@ -44,9 +44,17 @@ public class StoreMutations extends BaseGraphQLResource {
 
     public DataFetcher<StoreResult> store() {
         return dfe -> {
-            List<StoreInput> storeInputs = arg(dfe, "store", new TypeReference<List<StoreInput>>() {});
+            List<StoreInput> storeInputs = arg(dfe, "store", new TypeReference<>() {});
             LocationIdentifier li = getLocationIdentifier(dfe);
             return new StoreResult(storeService.store(auth(dfe), storeInputs, li));
+        };
+    }
+
+    public DataFetcher<StoreResult> transfer() {
+        return dfe -> {
+            LocationIdentifier srcLi = getLocationIdentifier(dfe, "source");
+            LocationIdentifier dstLi = getLocationIdentifier(dfe, "destination");
+            return new StoreResult(storeService.transfer(auth(dfe), srcLi, dstLi));
         };
     }
 }

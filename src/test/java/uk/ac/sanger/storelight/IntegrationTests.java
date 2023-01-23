@@ -250,6 +250,31 @@ public class IntegrationTests {
 
     @Test
     @Transactional
+    public void testTransfer() throws Exception {
+        LocationIdentifier source = makeFreezer();
+        LocationIdentifier dest = makeFreezer();
+        tester.post("mutation { storeBarcode(barcode: \"ITEM-1\", address: \"A1\", location: {id:"+source.getId()+"}) { barcode, address }}");
+
+        Object response = tester.post("mutation { transfer(source: {id:"+source.getId()+"}, destination: {id:"+dest.getId()+"}) { stored { barcode, address, location { barcode } }}}");
+
+        Map<String, ?> stored = chainGet(response, "data", "transfer", "stored", 0);
+        assertEquals("ITEM-1", stored.get("barcode"));
+        assertEquals("A1", stored.get("address"));
+        assertEquals(dest.getBarcode(), chainGet(stored, "location", "barcode"));
+
+        response = tester.post("query { location(location: {id:"+dest.getId()+"}) { stored { barcode, address }}}");
+        stored = chainGet(response, "data", "location", "stored", 0);
+        assertEquals("ITEM-1", stored.get("barcode"));
+        assertEquals("A1", stored.get("address"));
+
+        refresh(source);
+        response = tester.post("query {location(location: {id:"+source.getId()+"}) { stored { barcode }}}");
+        assertThat(chainGetList(response, "data", "location", "stored")).isEmpty();
+
+    }
+
+    @Test
+    @Transactional
     public void testStoreAtAddressAndGetStored() throws Exception {
         // I observed that sometimes the location in the returned item does not include the newly stored item.
         // This test attempts to check that.
