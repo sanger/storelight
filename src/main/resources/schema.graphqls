@@ -115,6 +115,8 @@ type Query {
     location(location: LocationIdentifier!): Location!
     """Get the stored items with any of the given barcodes (may be empty)."""
     stored(barcodes: [String!]!): [Item!]!
+    """Gets the hierarchy of parents for a location, starting from the root."""
+    locationHierarchy(location: LocationIdentifier!): [Location!]!
 }
 
 type Mutation {

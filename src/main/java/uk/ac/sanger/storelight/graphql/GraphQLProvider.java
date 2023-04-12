@@ -72,6 +72,7 @@ public class GraphQLProvider {
                 .type(newTypeWiring("Query")
                         .dataFetcher("location", dataFetchers.getLocation())
                         .dataFetcher("stored", dataFetchers.getStored())
+                        .dataFetcher("locationHierarchy", dataFetchers.getLocationHierarchy())
                 )
                 .type(newTypeWiring("Mutation")
                         .dataFetcher("addLocation", transact(locationMutations.addLocation()))

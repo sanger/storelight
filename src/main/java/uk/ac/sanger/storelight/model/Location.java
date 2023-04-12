@@ -145,7 +145,7 @@ public class Location {
         List<Location> hierarchy = getHierarchy();
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (Location loc : reverseIter(hierarchy)) {
+        for (Location loc : hierarchy) {
             String name = loc.getName();
             if (name!=null && name.isEmpty()) {
                 name = null;
@@ -170,13 +170,18 @@ public class Location {
         return sb.toString();
     }
 
-    private List<Location> getHierarchy() {
-        List<Location> hierarchy = new ArrayList<>();
+    /**
+     * Gets the parent hierarchy of this location, starting with the root, and ending with {@code this}.
+     * @return a nonempty list of locations
+     */
+    public List<Location> getHierarchy() {
+        ArrayList<Location> hierarchy = new ArrayList<>();
         Location cur = this;
         while (cur != null) {
             hierarchy.add(cur);
             cur = cur.getParent();
         }
+        Collections.reverse(hierarchy);
         return hierarchy;
     }
 
