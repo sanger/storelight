@@ -79,6 +79,24 @@ public class IntegrationTests {
 
         response = tester.post(getLocationQuery.replace("{id:1}", "{id:"+id+"}"));
         assertEquals(freezerLi.getBarcode()+" Freezer Alpha / A2", chainGet(response, "data", "location", "qualifiedNameWithFirstBarcode"));
+
+        String hierQuery = tester.readResource("graphql/hierarchy.graphql");
+        response = tester.post(hierQuery.replace("{id:1}", "{id:"+id+"}"));
+        List<Map<String, String>> results = chainGet(response, "data", "locationHierarchy");
+        assertMap(results.get(0),"barcode", freezerLi.getBarcode(),
+                "name", "Freezer Alpha",
+                "description", "A freezer.",
+                "address", null
+        );
+        assertMap(results.get(1), "barcode", barcode, "name", null, "description", null, "address", "A2");
+    }
+
+    private void assertMap(Map<String, String> map, String... kvs) {
+        final int len = kvs.length;
+        for (int i = 0; i < len; i += 2) {
+            assertEquals(kvs[i+1], map.get(kvs[i]), kvs[i]);
+        }
+        assertThat(map).hasSize(len/2);
     }
 
     @Test

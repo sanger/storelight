@@ -1,0 +1,8 @@
+{
+    locationHierarchy(location: {id:1}) {
+        barcode
+        name
+        description
+        address
+    }
+}
