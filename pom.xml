@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>uk.ac.sanger</groupId>
 	<artifactId>storelight</artifactId>
-	<version>1.2.0</version>
+	<version>1.3.0</version>
 	<name>storelight</name>
 	<description>Barcode location storage application</description>
 
