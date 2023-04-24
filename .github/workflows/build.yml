@@ -20,11 +20,8 @@ jobs:
       - name: Build with maven
         run: mvn -B package -Dmaven.test.skip=true --file pom.xml
 
-      - name: Rename the jar
-        run: mv target/*.jar target/storelight.jar
-
       - name: Create a release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "target/storelight.jar"
+          artifacts: "target/storelight*.jar"
           token: ${{ secrets.GITHUB_TOKEN }}
