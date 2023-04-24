@@ -26,5 +26,5 @@ jobs:
       - name: Create a release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "target/sprint*.jar"
+          artifacts: "target/storelight.jar"
           token: ${{ secrets.GITHUB_TOKEN }}
