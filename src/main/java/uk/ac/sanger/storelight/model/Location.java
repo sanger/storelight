@@ -6,7 +6,8 @@ import com.google.common.base.MoreObjects;
 import javax.persistence.*;
 import java.util.*;
 
-import static uk.ac.sanger.storelight.utils.BasicUtils.*;
+import static uk.ac.sanger.storelight.utils.BasicUtils.newArrayList;
+import static uk.ac.sanger.storelight.utils.BasicUtils.repr;
 
 /**
  * A location that might contain stored items or other locations
@@ -216,5 +217,22 @@ public class Location {
                 .add("direction", direction)
                 .omitNullValues()
                 .toString();
+    }
+
+    /**
+     * The index of the given address in this location, if such a thing can be deduced.
+     * @param address the address inside this location
+     * @return the index of the given address, starting from 1; or null
+     */
+    public Integer addressIndex(Address address) {
+        if (address!=null && size!=null && direction!=null && size.contains(address)) {
+            switch (direction) {
+                case RightDown: return (address.getRow()-1) * size.getNumColumns() + address.getColumn();
+                case DownRight: return (address.getColumn()-1) * size.getNumRows() + address.getRow();
+                case RightUp: return (size.getNumRows()-address.getRow()) * size.getNumColumns() + address.getColumn();
+                case UpRight: return (address.getColumn()-1) * size.getNumRows() + size.getNumRows() - address.getRow() + 1;
+            }
+        }
+        return null;
     }
 }

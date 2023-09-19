@@ -1,5 +1,6 @@
 package uk.ac.sanger.storelight.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 
 import javax.persistence.*;
@@ -72,6 +73,14 @@ public class Item {
 
     public void setAddress(Address address) {
         this.address = address;
+    }
+
+    @JsonIgnore
+    public Integer getAddressIndex() {
+        if (this.address==null || this.location==null) {
+            return null;
+        }
+        return this.location.addressIndex(this.address);
     }
 
     private boolean sameLocationAs(Item that) {

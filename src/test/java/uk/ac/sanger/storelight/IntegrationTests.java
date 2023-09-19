@@ -130,6 +130,24 @@ public class IntegrationTests {
 
     @Test
     @Transactional
+    public void testAddressIndex() throws Exception {
+        LocationIdentifier li = makeFreezer("graphql/addsizedfreezer.graphql");
+        String storeMutation = "mutation { storeBarcode(barcode: \"ITEM-1\", location: {id: "+li.getId()+"}, address: \"B3\") { barcode, address, addressIndex }}";
+        Object response = tester.post(storeMutation);
+        Integer addressIndex = chainGet(response, "data", "storeBarcode", "addressIndex");
+        assertEquals(6, addressIndex);
+
+        String query = tester.readResource("graphql/getstored.graphql").replace("[]", "[\"ITEM-1\"]");
+        response = tester.post(query);
+        Map<String, ?> result = chainGet(response, "data", "stored", 0);
+        assertEquals("ITEM-1", result.get("barcode"));
+        assertEquals("B3", result.get("address"));
+        assertEquals(li.getId(), chainGet(result, "location", "id"));
+        assertEquals(addressIndex, result.get("addressIndex"));
+    }
+
+    @Test
+    @Transactional
     public void testStoreUnstoreBarcode() throws Exception {
         LocationIdentifier li = makeFreezer();
         String storeMutation = "mutation { storeBarcode(barcode: \"ITEM-1\", location: {id: "+li.getId()+"}) { barcode }}";
@@ -145,11 +163,13 @@ public class IntegrationTests {
         Map<String, Object> item1 = new HashMap<>();
         item1.put("barcode", "ITEM-1");
         item1.put("address", null);
+        item1.put("addressIndex", null);
         Map<String, Integer> loc = Map.of("id", li.getId());
         item1.put("location", loc);
         Map<String, Object> item2 = new HashMap<>();
         item2.put("barcode", "ITEM-2");
         item2.put("address", "A2");
+        item2.put("addressIndex", null);
         item2.put("location", loc);
         assertThat(stored).containsOnly(item1, item2);
 
@@ -220,7 +240,7 @@ public class IntegrationTests {
         assertEquals(3, storeData.get("numStored"));
         Map<String, ?> loc1Data = Map.of("id", li1.getId());
         Map<String, ?> loc2Data = Map.of("id", li2.getId());
-        Object[] storedItems = {
+        Map<?,?>[] storedItems = {
                 storedMap("ITEM-1", loc1Data, "A1"),
                 storedMap("ITEM-2", loc1Data, "A2"),
                 storedMap("ITEM-3", loc2Data, null)
@@ -230,6 +250,10 @@ public class IntegrationTests {
         refresh(li1);
         String getStoredQuery = tester.readResource("graphql/getstored.graphql")
                 .replace("[]", "[\"ITEM-1\",\"ITEM-2\",\"ITEM-3\",\"ITEM-0\"]");
+        for (Map<?,?> storedItem : storedItems) {
+            //noinspection unchecked
+            ((Map<String,Object>) storedItem).put("addressIndex", null);
+        }
         response = tester.post(getStoredQuery);
         List<Object> storedList = chainGet(response, "data", "stored");
         assertThat(storedList).hasSize(3);
@@ -320,7 +344,7 @@ public class IntegrationTests {
     }
 
     private static Map<String, Object> storedMap(String barcode, Map<String, ?> location, String address) {
-        Map<String, Object> map = new HashMap<>(3);
+        Map<String, Object> map = new HashMap<>();
         map.put("barcode", barcode);
         map.put("location", location);
         map.put("address", address);
@@ -328,7 +352,11 @@ public class IntegrationTests {
     }
 
     private LocationIdentifier makeFreezer() throws Exception {
-        String mutation = tester.readResource("graphql/addfreezer.graphql");
+        return makeFreezer("graphql/addfreezer.graphql");
+    }
+
+    private LocationIdentifier makeFreezer(String mutationFilename) throws Exception {
+        String mutation = tester.readResource(mutationFilename);
         Object response = tester.post(mutation);
         Object locData = chainGet(response, "data", "addLocation");
         Integer id = chainGet(locData, "id");
