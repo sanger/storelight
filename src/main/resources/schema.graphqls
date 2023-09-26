@@ -34,11 +34,13 @@ input LocationIdentifier {
 """An item stored in the system."""
 type Item {
     """The unique barcode of the stored item."""
-    barcode: String!, # a stored item must have a barcode
+    barcode: String! # a stored item must have a barcode
     """The location where the item is stored."""
-    location: Location!, # a stored item must have a location
+    location: Location! # a stored item must have a location
     """The address (if applicable) inside the location where the thing is stored."""
-    address: Address, # a stored item may have an address inside its location
+    address: Address # a stored item may have an address inside its location
+    """The index of this address inside its location, if such a thing makes sense."""
+    addressIndex: Int
 }
 
 """A type containing a list of items that are stored."""

@@ -1,0 +1,11 @@
+mutation {
+    addLocation(location:{
+        description: "A freezer."
+        name: "Freezer Alpha"
+        size: {numColumns: 3, numRows: 2}
+        direction: RightDown
+    }) {
+        barcode
+        id
+    }
+}
