@@ -235,4 +235,10 @@ public class Location {
         }
         return null;
     }
+
+    /** Number of items stored directly in this location */
+    public int getNumStored() {
+        var stored = getStored();
+        return stored==null ? 0 : stored.size();
+    }
 }

@@ -180,9 +180,11 @@ public class IntegrationTests {
         stored = chainGet(response, "data", "location", "stored");
         assertThat(stored).containsOnly(Map.of("barcode", "ITEM-1"), Map.of("barcode", "ITEM-2"));
 
-        String unstoreMutation = "mutation { unstoreBarcode(barcode: \"ITEM-1\") { location { id }}}";
+        String unstoreMutation = "mutation { unstoreBarcode(barcode: \"ITEM-1\") { location { id numStored }}}";
         response = tester.post(unstoreMutation);
         assertEquals(li.getId(), chainGet(response, "data", "unstoreBarcode", "location", "id"));
+        int ns = chainGet(response, "data", "unstoreBarcode", "location", "numStored");
+        assertEquals(2, ns);
 
         entityManager.flush(); // deletes aren't executed until flush or commit
         refresh(li);

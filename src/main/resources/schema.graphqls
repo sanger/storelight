@@ -84,6 +84,8 @@ type Location {
     direction: GridDirection
     """The name (or barcode) if this item and all its containers, including the barcode of the topmost element."""
     qualifiedNameWithFirstBarcode: String!
+    """The number of items stored directly in this location."""
+    numStored: Int!
 }
 
 """A specification of a thing to store, and where to store it."""
