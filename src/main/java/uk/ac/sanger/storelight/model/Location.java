@@ -241,4 +241,10 @@ public class Location {
         var stored = getStored();
         return stored==null ? 0 : stored.size();
     }
+
+    /** Number of locations directly inside this location */
+    public int getNumChildren() {
+        var children = getChildren();
+        return (children==null ? 0 : children.size());
+    }
 }

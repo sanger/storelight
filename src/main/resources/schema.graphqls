@@ -86,6 +86,8 @@ type Location {
     qualifiedNameWithFirstBarcode: String!
     """The number of items stored directly in this location."""
     numStored: Int!
+    """The number of locations directly inside this location."""
+    numChildren: Int!
 }
 
 """A specification of a thing to store, and where to store it."""
